@@ -55,6 +55,49 @@ def test_zip_nao_mudou_quando_etag_igual(tmp_path, monkeypatch):
 
 
 @responses.activate
+def test_zip_mudou_quando_etag_difere_mesmo_com_last_modified_igual(tmp_path, monkeypatch):
+    monkeypatch.setattr(manifest, "CAMINHO", tmp_path / "_manifest.json")
+    manifest.gravar("clima_2026", {"etag": "v1", "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"})
+    responses.add(
+        responses.HEAD,
+        _url(2026),
+        headers={"ETag": "v2", "Last-Modified": "Wed, 01 Jan 2026 00:00:00 GMT"},
+        status=200,
+    )
+
+    mudou, _ = inmet_api.zip_mudou(2026)
+
+    assert mudou is True
+
+
+@responses.activate
+def test_zip_mudou_quando_sem_etag_e_last_modified_difere(tmp_path, monkeypatch):
+    monkeypatch.setattr(manifest, "CAMINHO", tmp_path / "_manifest.json")
+    manifest.gravar("clima_2026", {"etag": None, "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"})
+    responses.add(
+        responses.HEAD,
+        _url(2026),
+        headers={"Last-Modified": "Thu, 02 Jan 2026 00:00:00 GMT"},
+        status=200,
+    )
+
+    mudou, _ = inmet_api.zip_mudou(2026)
+
+    assert mudou is True
+
+
+@responses.activate
+def test_zip_mudou_quando_resposta_sem_headers(tmp_path, monkeypatch):
+    monkeypatch.setattr(manifest, "CAMINHO", tmp_path / "_manifest.json")
+    manifest.gravar("clima_2026", {"etag": "v1", "last_modified": "Wed, 01 Jan 2026 00:00:00 GMT"})
+    responses.add(responses.HEAD, _url(2026), status=200)
+
+    mudou, _ = inmet_api.zip_mudou(2026)
+
+    assert mudou is True
+
+
+@responses.activate
 def test_ingest_clima_pula_ano_sem_mudanca(tmp_path, monkeypatch):
     monkeypatch.setattr(manifest, "CAMINHO", tmp_path / "_manifest.json")
     monkeypatch.setattr(config, "BRONZE_DIR", tmp_path)

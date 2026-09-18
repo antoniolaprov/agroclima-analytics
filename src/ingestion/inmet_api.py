@@ -106,10 +106,10 @@ def zip_mudou(ano: int) -> tuple[bool, dict]:
     anterior = manifest.ler(f"clima_{ano}")
     if anterior is None:
         return True, atual
-    if atual["etag"] and atual["etag"] == anterior.get("etag"):
-        return False, atual
-    if atual["last_modified"] and atual["last_modified"] == anterior.get("last_modified"):
-        return False, atual
+    if atual["etag"] and anterior.get("etag"):
+        return atual["etag"] != anterior["etag"], atual
+    if atual["last_modified"] and anterior.get("last_modified"):
+        return atual["last_modified"] != anterior["last_modified"], atual
     return True, atual
 
 
