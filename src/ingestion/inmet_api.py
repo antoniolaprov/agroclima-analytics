@@ -1,11 +1,14 @@
 import io
 import logging
 import re
+import zipfile
+from typing import Iterable
 
 import pandas as pd
+import requests
 
 from src import config
-from src.ingestion import base
+from src.ingestion import base, manifest
 
 log = logging.getLogger(__name__)
 
@@ -89,3 +92,54 @@ def parse_csv_estacao(conteudo: bytes, nome_arquivo: str) -> pd.DataFrame:
     for original, novo in presentes.items():
         saida[novo] = df[original].map(_para_float)
     return saida
+
+
+def zip_mudou(ano: int) -> tuple[bool, dict]:
+    url = config.INMET_ZIP_URL.format(ano=ano)
+    cabecalho = requests.head(url, timeout=60, allow_redirects=True)
+    cabecalho.raise_for_status()
+
+    atual = {
+        "etag": cabecalho.headers.get("ETag"),
+        "last_modified": cabecalho.headers.get("Last-Modified"),
+    }
+    anterior = manifest.ler(f"clima_{ano}")
+    if anterior is None:
+        return True, atual
+    if atual["etag"] and atual["etag"] == anterior.get("etag"):
+        return False, atual
+    if atual["last_modified"] and atual["last_modified"] == anterior.get("last_modified"):
+        return False, atual
+    return True, atual
+
+
+def _ler_zip(conteudo: bytes) -> pd.DataFrame:
+    partes = []
+    with zipfile.ZipFile(io.BytesIO(conteudo)) as z:
+        for nome in z.namelist():
+            if not nome.upper().endswith(".CSV"):
+                continue
+            try:
+                partes.append(parse_csv_estacao(z.read(nome), nome.split("/")[-1]))
+            except ValueError as erro:
+                log.warning("ignorando %s: %s", nome, erro)
+    if not partes:
+        raise ValueError("nenhum CSV valido no zip")
+    return pd.concat(partes, ignore_index=True)
+
+
+def ingest_clima(anos: Iterable[int]) -> dict[int, int]:
+    resultado = {}
+    for ano in anos:
+        mudou, headers = zip_mudou(ano)
+        if not mudou:
+            log.info("clima %s sem mudanca, pulando", ano)
+            resultado[ano] = 0
+            continue
+
+        url = config.INMET_ZIP_URL.format(ano=ano)
+        df = _ler_zip(base.http_get(url, timeout=600).content)
+        base.write_parquet(df, "clima_horario", url, particao=str(ano))
+        manifest.gravar(f"clima_{ano}", headers)
+        resultado[ano] = len(df)
+    return resultado
