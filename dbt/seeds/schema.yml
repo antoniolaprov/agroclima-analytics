@@ -1,0 +1,12 @@
+version: 2
+
+seeds:
+  - name: ciclo_cultura
+    columns:
+      - name: cultura
+        tests: [not_null, unique]
+      - name: mes_inicio
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 12

@@ -38,3 +38,15 @@ models:
           - not_null
           - accepted_values:
               values: ['soja', 'milho', 'cafe', 'cana']
+
+  - name: dim_uf
+    columns:
+      - name: uf
+        tests: [not_null, unique]
+      - name: uf_codigo
+        tests: [not_null, unique]
+
+  - name: dim_cultura
+    columns:
+      - name: cultura
+        tests: [not_null, unique]
