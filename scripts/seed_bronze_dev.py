@@ -90,6 +90,12 @@ def gerar_clima_horario() -> pd.DataFrame:
     # A003: um dia logo acima do corte de 18 horas.
     add_dia("A003", "MG", dt.date(2026, 1, 1), range(0, 19))
 
+    # A004: estacao excluida de stg_estacoes (situacao != 'Operante'), mas com
+    # historico horario valido e acima do corte de 18 horas. stg_clima_diario
+    # nao deve descartar essas leituras so porque a estacao nao e "Operante"
+    # hoje - o dado historico continua valido.
+    add_dia("A004", "DF", dt.date(2026, 1, 1), range(0, 20))
+
     df = pd.DataFrame(linhas)
     return _com_metadados(df)
 

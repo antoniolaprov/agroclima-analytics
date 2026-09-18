@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from src import config, pipeline
@@ -38,3 +40,25 @@ def test_rodar_dbt_propaga_falha(monkeypatch):
 
     with pytest.raises(RuntimeError, match="dbt build falhou"):
         pipeline.rodar_dbt()
+
+
+def test_rodar_dbt_invoca_dbt_como_modulo_do_interpretador(monkeypatch):
+    comandos = []
+
+    def falso_run(cmd, **kwargs):
+        comandos.append(cmd)
+
+        class R:
+            returncode = 0
+        return R()
+
+    monkeypatch.setattr(pipeline.subprocess, "run", falso_run)
+
+    pipeline.rodar_dbt()
+
+    assert len(comandos) == 1
+    cmd = comandos[0]
+    assert cmd[0] == sys.executable
+    assert cmd[1:3] == ["-m", "dbt.cli.main"]
+    assert cmd[0] != "dbt"
+    assert "build" in cmd

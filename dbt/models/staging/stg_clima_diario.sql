@@ -1,7 +1,7 @@
 with por_dia as (
     select
         h.cd_estacao,
-        e.uf,
+        h.uf,
         h.data,
         avg(h.temperatura)      as temp_media,
         max(h.temperatura_max)  as temp_max,
@@ -10,7 +10,6 @@ with por_dia as (
         avg(h.umidade)          as umidade_media,
         count(h.temperatura)    as horas_observadas
     from {{ ref('stg_clima_horario') }} h
-    inner join {{ ref('stg_estacoes') }} e on e.cd_estacao = h.cd_estacao
     group by 1, 2, 3
 )
 select *

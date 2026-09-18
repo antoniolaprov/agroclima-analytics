@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import sys
 
 from src import config
 from src.ingestion import inmet_api, sidra_api
@@ -20,8 +21,23 @@ def ingerir(anos=None) -> dict:
 
 
 def rodar_dbt() -> None:
+    # cwd=DBT_DIR: profiles.yml e o external_location de sources.yml usam
+    # caminhos relativos (ex.: "../data/warehouse.duckdb"), resolvidos pelo
+    # DuckDB contra o diretorio de trabalho do processo, nao contra
+    # --project-dir/--profiles-dir. Sem isso, rodar a partir da raiz do repo
+    # aponta para um warehouse.duckdb e um data/bronze/ errados.
     resultado = subprocess.run(
-        ["dbt", "build", "--project-dir", str(DBT_DIR), "--profiles-dir", str(DBT_DIR)],
+        [
+            sys.executable,
+            "-m",
+            "dbt.cli.main",
+            "build",
+            "--project-dir",
+            str(DBT_DIR),
+            "--profiles-dir",
+            str(DBT_DIR),
+        ],
+        cwd=str(DBT_DIR),
         check=False,
     )
     if resultado.returncode != 0:
