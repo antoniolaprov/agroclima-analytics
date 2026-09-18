@@ -149,7 +149,14 @@ def gerar_pam() -> pd.DataFrame:
     linhas = []
     for uf_codigo, uf_nome in UFS:
         for cultura_codigo, cultura in CULTURAS_PAM:
-            for periodo in ("2023", "2024"):
+            periodos = ["2022", "2023", "2024"]
+            if uf_codigo == "53" and cultura == "soja":
+                # Lacuna proposital: DF/soja pula 2023. Cobre o teste de que
+                # var_producao_aa/var_rendimento_aa ficam nulas em
+                # gold_safra_uf quando o ano anterior no lag nao e ano - 1
+                # (2024 encontraria 2022 como "anterior", nao 2023).
+                periodos = ["2022", "2024"]
+            for periodo in periodos:
                 for variavel, valor_base in VARIAVEIS_PAM.items():
                     linhas.append(
                         {
