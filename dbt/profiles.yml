@@ -4,4 +4,4 @@ agroclima:
     dev:
       type: duckdb
       path: "../data/warehouse.duckdb"
-      threads: 4
+      threads: 1  # fixado em 1: build multi-thread trava no encerramento do pool do DuckDB no Windows
