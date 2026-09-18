@@ -38,6 +38,11 @@ models:
           - not_null
           - accepted_values:
               values: ['soja', 'milho', 'cafe', 'cana']
+      - name: uf_codigo
+        tests:
+          - relationships:
+              to: ref('dim_uf')
+              field: uf_codigo
 
   - name: dim_uf
     columns:
