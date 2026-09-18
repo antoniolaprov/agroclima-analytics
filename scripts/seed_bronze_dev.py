@@ -178,7 +178,11 @@ def gerar_lspa() -> pd.DataFrame:
     for uf_codigo, uf_nome in UFS:
         for cultura_codigo, cultura in CULTURAS_LSPA:
             safra_ciclo = config.CICLO_LSPA.get(cultura_codigo)
-            for periodo in ("202601", "202602"):
+            # "202412" cobre dezembro de 2024, ano tambem presente na PAM
+            # fabricada abaixo: sem um mes=12 em ano comum com a PAM, o
+            # teste milho_lspa_bate_com_pam nao teria linha nenhuma para
+            # comparar (LSPA so tinha 2026 antes desta linha).
+            for periodo in ("202412", "202601", "202602"):
                 for variavel, valor_base in VARIAVEIS_LSPA.items():
                     linhas.append(
                         {
