@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: gold_clima_uf_mensal
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [uf, ano, mes]
+    columns:
+      - name: n_estacoes
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+      - name: precipitacao
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+
+  - name: gold_safra_uf
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: [uf, cultura, ano]
+    columns:
+      - name: uf
+        tests:
+          - relationships:
+              to: ref('dim_uf')
+              field: uf
+      - name: cultura
+        tests:
+          - relationships:
+              to: ref('dim_cultura')
+              field: cultura
+
+  - name: gold_clima_safra
+    columns:
+      - name: rendimento
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              severity: warn
