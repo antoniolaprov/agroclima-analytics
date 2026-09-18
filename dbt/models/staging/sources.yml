@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: bronze
+    meta:
+      external_location: "../data/bronze/{name}/**/*.parquet"
+    tables:
+      - name: estacoes
+      - name: clima_horario
+      - name: pam
+      - name: lspa

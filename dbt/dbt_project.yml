@@ -1,0 +1,19 @@
+name: agroclima
+version: "1.0"
+profile: agroclima
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+target-path: "target"
+
+models:
+  agroclima:
+    staging:
+      +materialized: view
+      stg_clima_horario:
+        +materialized: table
+      stg_clima_diario:
+        +materialized: table
+    marts:
+      +materialized: table
