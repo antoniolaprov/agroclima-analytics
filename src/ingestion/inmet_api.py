@@ -1,4 +1,6 @@
+import io
 import logging
+import re
 
 import pandas as pd
 
@@ -38,3 +40,52 @@ def ingest_estacoes() -> int:
     df = fetch_estacoes()
     base.write_parquet(df, "estacoes", config.INMET_ESTACOES_URL)
     return len(df)
+
+
+SENTINELAS = {"", "-9999", "9999", "null"}
+
+COLUNAS_CSV = {
+    "PRECIPITAÇÃO TOTAL, HORÁRIO (mm)": "precipitacao",
+    "TEMPERATURA DO AR - BULBO SECO, HORARIA (°C)": "temperatura",
+    "TEMPERATURA MÁXIMA NA HORA ANT. (AUT) (°C)": "temperatura_max",
+    "TEMPERATURA MÍNIMA NA HORA ANT. (AUT) (°C)": "temperatura_min",
+    "UMIDADE RELATIVA DO AR, HORARIA (%)": "umidade",
+    "VENTO, VELOCIDADE HORARIA (m/s)": "vento_velocidade",
+}
+
+PADRAO_NOME = re.compile(r"INMET_[A-Z]{1,2}_([A-Z]{2})_([A-Z]\d{3})_")
+
+
+def _para_float(valor: str) -> float:
+    texto = str(valor).strip()
+    if texto in SENTINELAS:
+        return float("nan")
+    return float(texto.replace(",", "."))
+
+
+def parse_csv_estacao(conteudo: bytes, nome_arquivo: str) -> pd.DataFrame:
+    achado = PADRAO_NOME.search(nome_arquivo)
+    if achado is None:
+        raise ValueError(f"nome de arquivo fora do padrao do INMET: {nome_arquivo}")
+    uf, cd_estacao = achado.groups()
+
+    texto = conteudo.decode("latin1")
+    df = pd.read_csv(io.StringIO(texto), sep=";", skiprows=8, dtype=str, keep_default_na=False)
+    df.columns = [c.strip() for c in df.columns]
+
+    presentes = {orig: novo for orig, novo in COLUNAS_CSV.items() if orig in df.columns}
+    if len(presentes) != len(COLUNAS_CSV):
+        faltando = sorted(set(COLUNAS_CSV) - set(presentes))
+        raise ValueError(f"CSV {nome_arquivo} sem as colunas {faltando}")
+
+    saida = pd.DataFrame(
+        {
+            "cd_estacao": cd_estacao,
+            "uf": uf,
+            "data": pd.to_datetime(df["Data"], format="%Y/%m/%d"),
+            "hora_utc": df["Hora UTC"].str.slice(0, 2).astype(int),
+        }
+    )
+    for original, novo in presentes.items():
+        saida[novo] = df[original].map(_para_float)
+    return saida
