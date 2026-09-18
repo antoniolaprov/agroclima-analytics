@@ -60,16 +60,23 @@ def gerar_estacoes() -> pd.DataFrame:
 def gerar_clima_horario() -> pd.DataFrame:
     linhas = []
 
-    def add_dia(cd_estacao: str, uf: str, data: dt.date, horas: range):
+    def add_dia(
+        cd_estacao: str,
+        uf: str,
+        data: dt.date,
+        horas: range,
+        deslocamento_temp: float = 0.0,
+        fator_precip: float = 1.0,
+    ):
         for hora in horas:
-            base = 20 + (hora % 12) * 0.5
+            base = 20 + (hora % 12) * 0.5 + deslocamento_temp
             linhas.append(
                 {
                     "cd_estacao": cd_estacao,
                     "uf": uf,
                     "data": data,
                     "hora_utc": hora,
-                    "precipitacao": round(0.2 * (hora % 3), 1),
+                    "precipitacao": round(fator_precip * 0.2 * (hora % 3), 1),
                     "temperatura": round(base, 1),
                     "temperatura_max": round(base + 1.0, 1),
                     "temperatura_min": round(base - 1.0, 1),
@@ -95,6 +102,35 @@ def gerar_clima_horario() -> pd.DataFrame:
     # nao deve descartar essas leituras so porque a estacao nao e "Operante"
     # hoje - o dado historico continua valido.
     add_dia("A004", "DF", dt.date(2026, 1, 1), range(0, 20))
+
+    # Serie mensal de 2022 a 2024 para DF, SP e MG (as mesmas UFs da PAM
+    # fabricada abaixo), um dia por mes com 20 horas observadas (acima do
+    # corte de stg_clima_diario). Sem isso a camada Gold nao teria: (a) meses
+    # suficientes para a media movel de 3 meses, (b) variacao ano a ano para
+    # produzir anomalias nao triviais, nem (c) cobertura de meses fora do ano
+    # civil da safra (out-dez do ano anterior) exigida pelos ciclos de
+    # soja/milho/cafe em gold_clima_safra.
+    temp_e_precip_por_mes = {
+        1: (26.0, 1.6), 2: (25.5, 1.5), 3: (24.5, 1.3), 4: (22.5, 0.9),
+        5: (20.0, 0.5), 6: (18.0, 0.2), 7: (17.5, 0.1), 8: (19.0, 0.2),
+        9: (21.5, 0.4), 10: (23.5, 0.9), 11: (25.0, 1.3), 12: (26.0, 1.6),
+    }
+    deslocamento_por_uf = {"DF": -1.5, "SP": 0.0, "MG": 1.0}
+    estacao_por_uf = {"DF": "A001", "SP": "A002", "MG": "A003"}
+
+    for ano in (2022, 2023, 2024):
+        tendencia_ano = (ano - 2022) * 0.3
+        for mes in range(1, 13):
+            temp_mes, fator_precip_mes = temp_e_precip_por_mes[mes]
+            for uf, cd_estacao in estacao_por_uf.items():
+                add_dia(
+                    cd_estacao,
+                    uf,
+                    dt.date(ano, mes, 15),
+                    range(0, 20),
+                    deslocamento_temp=temp_mes + deslocamento_por_uf[uf] + tendencia_ano - 20,
+                    fator_precip=fator_precip_mes,
+                )
 
     df = pd.DataFrame(linhas)
     return _com_metadados(df)
