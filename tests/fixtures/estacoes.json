@@ -1,0 +1,24 @@
+[
+  {
+    "CD_ESTACAO": "A001",
+    "DC_NOME": "BRASILIA",
+    "SG_ESTADO": "DF",
+    "VL_LATITUDE": "-15.78944444",
+    "VL_LONGITUDE": "-47.92583332",
+    "VL_ALTITUDE": "1160.96",
+    "CD_SITUACAO": "Operante",
+    "DT_INICIO_OPERACAO": "2000-05-07T00:00:00.000-03:00",
+    "DT_FIM_OPERACAO": null
+  },
+  {
+    "CD_ESTACAO": "A999",
+    "DC_NOME": "DESATIVADA",
+    "SG_ESTADO": "BA",
+    "VL_LATITUDE": "-11.65",
+    "VL_LONGITUDE": "-38.01",
+    "VL_ALTITUDE": "182",
+    "CD_SITUACAO": "Pane",
+    "DT_INICIO_OPERACAO": "2010-01-01T00:00:00.000-03:00",
+    "DT_FIM_OPERACAO": "2020-01-01T00:00:00.000-03:00"
+  }
+]
