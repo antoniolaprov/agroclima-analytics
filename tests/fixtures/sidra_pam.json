@@ -1,0 +1,34 @@
+[
+  {
+    "id": "214",
+    "variavel": "Quantidade produzida",
+    "unidade": "Toneladas",
+    "resultados": [
+      {
+        "classificacoes": [
+          {"id": "782", "nome": "Produto", "categoria": {"40124": "Soja (em grao)"}}
+        ],
+        "series": [
+          {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "18689393"}},
+          {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "38396410"}}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "112",
+    "variavel": "Rendimento medio da producao",
+    "unidade": "Quilogramas por Hectare",
+    "resultados": [
+      {
+        "classificacoes": [
+          {"id": "782", "nome": "Produto", "categoria": {"40124": "Soja (em grao)"}}
+        ],
+        "series": [
+          {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "3240"}},
+          {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "..."}}
+        ]
+      }
+    ]
+  }
+]
