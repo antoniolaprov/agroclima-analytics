@@ -12,6 +12,24 @@
           {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "18689393"}},
           {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "38396410"}}
         ]
+      },
+      {
+        "classificacoes": [
+          {"id": "782", "nome": "Produto", "categoria": {"40122": "Milho (em grao)"}}
+        ],
+        "series": [
+          {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "6500000"}},
+          {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "9800000"}}
+        ]
+      },
+      {
+        "classificacoes": [
+          {"id": "782", "nome": "Produto", "categoria": {"40139": "Cafe (em grao)"}}
+        ],
+        "series": [
+          {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "500000"}},
+          {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "12000"}}
+        ]
       }
     ]
   },
@@ -27,6 +45,24 @@
         "series": [
           {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "3240"}},
           {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "..."}}
+        ]
+      },
+      {
+        "classificacoes": [
+          {"id": "782", "nome": "Produto", "categoria": {"40122": "Milho (em grao)"}}
+        ],
+        "series": [
+          {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "5500"}},
+          {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "6100"}}
+        ]
+      },
+      {
+        "classificacoes": [
+          {"id": "782", "nome": "Produto", "categoria": {"40139": "Cafe (em grao)"}}
+        ],
+        "series": [
+          {"localidade": {"id": "41", "nome": "Parana"}, "serie": {"2024": "1800"}},
+          {"localidade": {"id": "51", "nome": "Mato Grosso"}, "serie": {"2024": "1500"}}
         ]
       }
     ]
