@@ -54,10 +54,13 @@ python -m streamlit run dashboard/app.py
 Acesse: http://localhost:8501
 
 Para rodar os testes, instale tambem as dependencias de desenvolvimento
-(`pytest` e `responses`, que nao entram nas imagens de producao):
+(`pytest` e `responses`, que nao entram nas imagens de producao). O
+`dbt deps` tambem e necessario aqui: `test_pipeline_smoke.py` roda um
+`dbt build` de verdade e depende do pacote `dbt_utils`.
 
 ```
 pip install -r requirements-dev.txt
+cd dbt && python -m dbt.cli.main deps && cd ..
 python -m pytest
 ```
 
