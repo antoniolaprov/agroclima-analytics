@@ -53,6 +53,14 @@ python -m streamlit run dashboard/app.py
 
 Acesse: http://localhost:8501
 
+Para rodar os testes, instale tambem as dependencias de desenvolvimento
+(`pytest` e `responses`, que nao entram nas imagens de producao):
+
+```
+pip install -r requirements-dev.txt
+python -m pytest
+```
+
 A primeira execucao baixa cerca de 300 MB do INMET e leva alguns minutos. As
 seguintes verificam o ETag do arquivo e so baixam o que mudou.
 
@@ -86,6 +94,22 @@ o diretorio `data/` como volume. Para popular rapido sem esperar o
 agendamento, rode o pipeline localmente (secao anterior) antes de subir o
 Docker, ou dispare a DAG `agroclima_pipeline` manualmente pela UI do Airflow.
 
+## Makefile
+
+Atalhos para os comandos acima (`dbt` e `streamlit` continuam sendo
+chamados como modulo, pelo mesmo motivo citado na secao anterior):
+
+```
+make install      # requirements.txt + dbt deps
+make install-dev  # + requirements-dev.txt (pytest, responses)
+make test         # python -m pytest -v
+make pipeline     # python -m src.pipeline
+make dbt          # cd dbt && dbt build
+make dashboard    # streamlit run dashboard/app.py
+make up           # docker compose up -d
+make down         # docker compose down
+```
+
 ## Estrutura
 
 - `src/ingestion` - clientes das APIs, gravam Parquet em `data/bronze`
@@ -95,6 +119,8 @@ Docker, ou dispare a DAG `agroclima_pipeline` manualmente pela UI do Airflow.
 - `dashboard` - aplicacao Streamlit
 - `airflow/dags` - agendamento
 - `requirements.txt` - dependencias para rodar local e o dashboard
+- `requirements-dev.txt` - `requirements.txt` mais `pytest` e `responses`,
+  usadas so pela suite de testes
 - `requirements-airflow.txt` - subconjunto usado na imagem do Airflow (sem
   streamlit/plotly/statsmodels, que sao so do dashboard e podem colidir com
   as constraints do apache/airflow)

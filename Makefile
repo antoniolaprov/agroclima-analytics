@@ -1,10 +1,14 @@
-.PHONY: install test pipeline dbt dashboard up down
+.PHONY: install install-dev test pipeline dbt dashboard up down
 
 # dbt e streamlit sao invocados como modulo (python -m ...): no Python da
 # Microsoft Store, os console scripts "dbt" e "streamlit" nao ficam no PATH.
 
 install:
 	pip install -r requirements.txt
+	cd dbt && python -m dbt.cli.main deps
+
+install-dev:
+	pip install -r requirements-dev.txt
 	cd dbt && python -m dbt.cli.main deps
 
 test:

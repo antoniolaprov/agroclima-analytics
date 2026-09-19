@@ -1,0 +1,6 @@
+# Dependencias so para rodar a suite de testes (pytest -m pytest). Nao
+# entram na imagem do dashboard nem na do Airflow.
+-r requirements.txt
+
+pytest==8.3.3
+responses==0.25.3
