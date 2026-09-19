@@ -4,9 +4,14 @@ seeds:
   - name: ciclo_cultura
     columns:
       - name: cultura
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
       - name: mes_inicio
-        tests:
+        data_tests:
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 12
+      - name: mes_fim
+        data_tests:
           - dbt_utils.accepted_range:
               min_value: 1
               max_value: 12

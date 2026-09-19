@@ -4,9 +4,9 @@ models:
   - name: stg_estacoes
     columns:
       - name: cd_estacao
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
       - name: uf
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
               values: ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
@@ -14,32 +14,36 @@ models:
   - name: stg_clima_diario
     columns:
       - name: uf
-        tests: [not_null]
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_uf')
+              field: uf
       - name: data
-        tests: [not_null]
+        data_tests: [not_null]
       - name: temp_media
-        tests:
+        data_tests:
           - dbt_utils.accepted_range:
               min_value: -10
               max_value: 50
               severity: warn
       - name: precipitacao
-        tests:
+        data_tests:
           - dbt_utils.accepted_range:
               min_value: 0
-    tests:
+    data_tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [cd_estacao, data]
 
   - name: stg_pam
     columns:
       - name: cultura
-        tests:
+        data_tests:
           - not_null
           - accepted_values:
               values: ['soja', 'milho', 'cafe', 'cana']
       - name: uf_codigo
-        tests:
+        data_tests:
           - relationships:
               to: ref('dim_uf')
               field: uf_codigo
@@ -47,11 +51,11 @@ models:
   - name: dim_uf
     columns:
       - name: uf
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
       - name: uf_codigo
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
 
   - name: dim_cultura
     columns:
       - name: cultura
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
