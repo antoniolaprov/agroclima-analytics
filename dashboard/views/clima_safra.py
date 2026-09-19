@@ -7,7 +7,7 @@ from dashboard import data
 def render(filtros):
     st.header("Clima x Safra")
 
-    df = data.clima_safra(filtros["culturas"])
+    df = data.clima_safra(filtros["culturas"], filtros["ano_ini"], filtros["ano_fim"])
     df = df[df["uf"].isin(filtros["ufs"])]
     if df.empty:
         st.info("Sem dados para os filtros selecionados.")

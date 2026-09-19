@@ -7,7 +7,7 @@ from dashboard import data
 def render(filtros):
     st.header("Safra")
 
-    df = data.safra(filtros["ufs"], filtros["culturas"])
+    df = data.safra(filtros["ufs"], filtros["culturas"], filtros["ano_ini"], filtros["ano_fim"])
     if df.empty:
         st.info("Sem dados para os filtros selecionados.")
         return

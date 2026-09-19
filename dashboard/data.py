@@ -35,19 +35,23 @@ def clima_mensal(ufs: tuple[str, ...], ano_ini: int, ano_fim: int) -> pd.DataFra
 
 
 @st.cache_data(ttl=600)
-def safra(ufs: tuple[str, ...], culturas: tuple[str, ...]) -> pd.DataFrame:
+def safra(ufs: tuple[str, ...], culturas: tuple[str, ...], ano_ini: int, ano_fim: int) -> pd.DataFrame:
     m_uf = ", ".join("?" for _ in ufs)
     m_cult = ", ".join("?" for _ in culturas)
     return consultar(
-        f"select * from gold_safra_uf where uf in ({m_uf}) and cultura in ({m_cult}) order by ano",
-        list(ufs) + list(culturas),
+        f"""
+        select * from gold_safra_uf
+        where uf in ({m_uf}) and cultura in ({m_cult}) and ano between ? and ?
+        order by ano
+        """,
+        list(ufs) + list(culturas) + [ano_ini, ano_fim],
     )
 
 
 @st.cache_data(ttl=600)
-def clima_safra(culturas: tuple[str, ...]) -> pd.DataFrame:
+def clima_safra(culturas: tuple[str, ...], ano_ini: int, ano_fim: int) -> pd.DataFrame:
     marcadores = ", ".join("?" for _ in culturas)
     return consultar(
-        f"select * from gold_clima_safra where cultura in ({marcadores})",
-        list(culturas),
+        f"select * from gold_clima_safra where cultura in ({marcadores}) and ano between ? and ?",
+        list(culturas) + [ano_ini, ano_fim],
     )

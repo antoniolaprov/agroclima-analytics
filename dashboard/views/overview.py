@@ -3,13 +3,11 @@ import streamlit as st
 
 from dashboard import data
 
-GEOJSON = "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo+json&qualidade=intermediaria&intrarregiao=UF"
-
 
 def render(filtros):
     st.header("Visao geral")
 
-    df = data.safra(filtros["ufs"], filtros["culturas"])
+    df = data.safra(filtros["ufs"], filtros["culturas"], filtros["ano_ini"], filtros["ano_fim"])
     if df.empty:
         st.info("Sem dados para os filtros selecionados.")
         return
