@@ -1,0 +1,14 @@
+.git
+.gitignore
+.worktrees
+venv
+__pycache__
+*.pyc
+.pytest_cache
+data
+dbt/target
+dbt/logs
+dbt/dbt_packages
+.env
+.superpowers
+docs
