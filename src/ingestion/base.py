@@ -10,9 +10,9 @@ from src import config
 log = logging.getLogger(__name__)
 
 
-def http_get(url: str, timeout: int = 60, tentativas: int = 3, **kwargs) -> requests.Response:
+def _requisitar(metodo, url: str, timeout: int, tentativas: int, **kwargs) -> requests.Response:
     for n in range(1, tentativas + 1):
-        resposta = requests.get(url, timeout=timeout, **kwargs)
+        resposta = metodo(url, timeout=timeout, **kwargs)
         if resposta.status_code < 500:
             resposta.raise_for_status()
             return resposta
@@ -20,6 +20,14 @@ def http_get(url: str, timeout: int = 60, tentativas: int = 3, **kwargs) -> requ
         time.sleep(2 ** n)
     resposta.raise_for_status()
     return resposta
+
+
+def http_get(url: str, timeout: int = 60, tentativas: int = 3, **kwargs) -> requests.Response:
+    return _requisitar(requests.get, url, timeout, tentativas, **kwargs)
+
+
+def http_head(url: str, timeout: int = 60, tentativas: int = 3, **kwargs) -> requests.Response:
+    return _requisitar(requests.head, url, timeout, tentativas, **kwargs)
 
 
 def write_parquet(df: pd.DataFrame, nome: str, source_url: str, particao: str | None = None) -> Path:

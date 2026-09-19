@@ -5,7 +5,6 @@ import zipfile
 from typing import Iterable
 
 import pandas as pd
-import requests
 
 from src import config
 from src.ingestion import base, manifest
@@ -96,8 +95,7 @@ def parse_csv_estacao(conteudo: bytes, nome_arquivo: str) -> pd.DataFrame:
 
 def zip_mudou(ano: int) -> tuple[bool, dict]:
     url = config.INMET_ZIP_URL.format(ano=ano)
-    cabecalho = requests.head(url, timeout=60, allow_redirects=True)
-    cabecalho.raise_for_status()
+    cabecalho = base.http_head(url, timeout=60, allow_redirects=True)
 
     atual = {
         "etag": cabecalho.headers.get("ETag"),
