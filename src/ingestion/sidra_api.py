@@ -1,11 +1,7 @@
-import logging
-
 import pandas as pd
 
 from src import config
 from src.ingestion import base
-
-log = logging.getLogger(__name__)
 
 AUSENTES = {"...", "-", "..", "X"}
 

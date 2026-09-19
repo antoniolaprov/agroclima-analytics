@@ -1,4 +1,3 @@
-import json
 from src.ingestion import manifest
 
 

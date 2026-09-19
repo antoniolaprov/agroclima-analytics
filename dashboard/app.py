@@ -1,6 +1,5 @@
 import streamlit as st
 
-from dashboard import data
 from dashboard.views import clima, clima_safra, overview, safra
 
 st.set_page_config(page_title="AgroClima Analytics", layout="wide")
