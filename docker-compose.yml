@@ -1,7 +1,13 @@
 services:
   airflow:
     build: .
-    command: standalone
+    # dbt/ e montado como volume (abaixo), por cima do que a imagem tenha
+    # instalado em build time - entao dbt_packages (gitignored, exigido
+    # pelos testes com dbt_utils) precisa ser recriado aqui, na inicializacao
+    # do container, e nao no Dockerfile. "exec airflow standalone" retoma o
+    # fluxo normal do entrypoint da imagem apos o dbt deps.
+    command: >
+      bash -c "python -m dbt.cli.main deps --project-dir /opt/airflow/dbt --profiles-dir /opt/airflow/dbt && exec airflow standalone"
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/airflow/dags
