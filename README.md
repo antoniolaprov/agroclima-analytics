@@ -106,6 +106,20 @@ Docker, ou dispare a DAG `agroclima_pipeline` manualmente pela UI do Airflow.
   dashboard para o leitor julgar cada ponto.
 - A API horaria do INMET (`apitempo`) esta fechada e retorna 204; o projeto
   usa os arquivos anuais de dados historicos, atualizados a cada ~90 dias.
+- A anomalia climatica nao e calculada contra uma normal de 30 anos.
+  `gold_clima_uf_mensal` tira a media de referencia da propria janela de
+  2022-2026 que ele agrega, entao `anomalia_temp` e `anomalia_precip` sao o
+  desvio em relacao a media de cinco anos daquele mes, nao a uma normal
+  climatologica de longo prazo. E a unica referencia possivel com os dados
+  que o projeto carrega.
+- Safras com ciclo incompleto na base climatica nao aparecem em
+  `gold_clima_safra`. O modelo so publica uma linha quando
+  `meses_observados = meses_esperados`; um ano-safra cujo ciclo cai na
+  borda da janela de clima disponivel ficaria com `precip_ciclo` calculado
+  sobre uma fracao do periodo, mas apresentado como se fosse o total. Nao
+  publicar a linha e preferivel a publicar um numero errado - por isso a
+  pagina de Clima x Safra pode nao cobrir todos os anos que a pagina de
+  Safra cobre.
 
 ## Fontes
 
