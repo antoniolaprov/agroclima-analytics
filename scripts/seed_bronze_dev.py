@@ -123,6 +123,12 @@ def gerar_clima_horario() -> pd.DataFrame:
         for mes in range(1, 13):
             temp_mes, fator_precip_mes = temp_e_precip_por_mes[mes]
             for uf, cd_estacao in estacao_por_uf.items():
+                if uf == "MG" and ano == 2023 and mes == 6:
+                    # Lacuna proposital: MG pula junho/2023. Cobre o teste de
+                    # que temp_media_movel_3m em gold_clima_uf_mensal nao
+                    # soma um mes fora do alcance real de 3 meses quando ha
+                    # um mes ausente no meio da serie.
+                    continue
                 add_dia(
                     cd_estacao,
                     uf,

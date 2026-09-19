@@ -3,6 +3,7 @@ with mensal as (
         uf,
         year(data)  as ano,
         month(data) as mes,
+        year(data) * 12 + month(data)            as mes_indice,
         avg(temp_media)                          as temp_media,
         max(temp_max)                            as temp_max,
         min(temp_min)                            as temp_min,
@@ -19,6 +20,11 @@ normais as (
     group by 1, 2
 )
 
+-- temp_media_movel_3m usa "range" (nao "rows") sobre mes_indice: a janela
+-- inclui apenas meses cujo indice esta a ate 2 do mes atual, entao um mes
+-- ausente encolhe a janela em vez de puxar um mes nao adjacente para dentro
+-- da "media de 3 meses" (mesmo problema ja corrigido em var_*_aa de
+-- gold_safra_uf, aqui resolvido pelo tipo de frame em vez de lag/case).
 select
     m.uf,
     m.ano,
@@ -30,7 +36,7 @@ select
     m.dias_sem_chuva,
     m.n_estacoes,
     avg(m.temp_media) over (
-        partition by m.uf order by m.ano, m.mes rows between 2 preceding and current row
+        partition by m.uf order by m.mes_indice range between 2 preceding and current row
     ) as temp_media_movel_3m,
     m.temp_media - n.temp_normal     as anomalia_temp,
     m.precipitacao - n.precip_normal as anomalia_precip
