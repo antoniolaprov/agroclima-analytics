@@ -217,16 +217,21 @@ start → [ingest_inmet_estacoes, ingest_inmet_clima, ingest_sidra] → dbt_buil
 detecta que o ZIP não mudou e termina em segundos. O `dbt_build` roda
 sempre, porque o SIDRA pode ter mudado.
 
-`dbt_build` é um `BashOperator` executando `dbt build`, que roda modelos e
-testes na ordem correta do DAG do dbt.
+`dbt_build` é um `PythonOperator` que chama `rodar_dbt` (a mesma função
+usada pelo pipeline local), que invoca `dbt build` via subprocess. Preferido
+a um `BashOperator` porque reaproveita a invocação do dbt já centralizada em
+`src/pipeline.py` (mesmo `sys.executable -m dbt.cli.main`, mesmo cwd), em
+vez de duplicar esse comando no DAG.
 
 ## 8. Dashboard
 
 Streamlit + Plotly, 4 páginas em `dashboard/views/`, com filtros de UF,
 cultura e período.
 
-1. **Visão geral** — KPIs e mapa coroplético do Brasil por UF, usando a
-   malha GeoJSON da própria API do IBGE
+1. **Visão geral** — KPIs e gráfico de barras horizontais de produção por
+   UF. Um mapa coroplético do Brasil com a malha GeoJSON do IBGE ficou como
+   trabalho futuro; o gráfico de barras cobre a mesma leitura (comparar UFs)
+   sem a complexidade extra de buscar e cachear a malha
 2. **Clima** — séries de temperatura e precipitação, anomalia contra a
    média histórica, média móvel
 3. **Safra** — área, produção, produtividade e variação anual por cultura
