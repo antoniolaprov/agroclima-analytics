@@ -231,10 +231,13 @@ vez de duplicar esse comando no DAG.
 Streamlit + Plotly, 4 páginas em `dashboard/views/`, com filtros de UF,
 cultura e período.
 
-1. **Visão geral** — KPIs e gráfico de barras horizontais de produção por
-   UF. Um mapa coroplético do Brasil com a malha GeoJSON do IBGE ficou como
-   trabalho futuro; o gráfico de barras cobre a mesma leitura (comparar UFs)
-   sem a complexidade extra de buscar e cachear a malha
+1. **Visão geral** — KPIs, mapa coroplético do Brasil com a produção de uma
+   cultura por UF no último ano do período, e gráfico de barras das UFs
+   selecionadas. O mapa mostra sempre as 27 UFs (ignora o filtro de UF, que
+   com poucas UFs deixaria o mapa sem contexto) e uma cultura por vez, porque
+   somar toneladas de culturas diferentes não tem significado. A malha das UFs
+   vem da API de malhas do IBGE e fica versionada em `dashboard/assets/`, para
+   o dashboard não depender da API no ar; `codarea` casa com `uf_codigo`
 2. **Clima** — séries de temperatura e precipitação, anomalia contra a
    média histórica, média móvel
 3. **Safra** — área, produção, produtividade e variação anual por cultura
