@@ -5,3 +5,7 @@ primaryColor = "#2e7d32"
 [server]
 headless = true
 port = 8501
+
+[client]
+# esconde o menu de desenvolvimento (botao Deploy) para quem usa o dashboard
+toolbarMode = "viewer"

@@ -7,16 +7,44 @@ disponibiliza em um dashboard interativo.
 A pergunta que o projeto responde: como chuva e temperatura se relacionam com
 a produtividade das principais culturas, por estado?
 
+![Visao geral do dashboard](docs/img/dashboard.png)
+
 ## O que o projeto faz
 
 1. Baixa o historico horario das estacoes automaticas do INMET (2022-2026)
 2. Busca area, producao e rendimento de soja, milho, cafe e cana no IBGE/SIDRA
 3. Armazena os dados brutos em Parquet (Bronze)
-4. Limpa e agrega para o nivel diario por estado com dbt (Silver)
-5. Calcula KPIs, medias moveis e anomalias climaticas com dbt (Gold)
+4. Limpa e agrega o horario para diario por estacao com dbt (Silver)
+5. Agrega por estado e mes, calcula medias moveis, anomalias e o clima de cada
+   ciclo de safra com dbt (Gold)
 6. Exibe os resultados num dashboard Streamlit
 
 O Airflow agenda o processo todo dia as 09h UTC (06h no horario de Brasilia).
+
+## Dashboard
+
+- **Visao geral** - producao, rendimento e area de uma cultura, com mapa do
+  Brasil por estado e comparacao entre os estados selecionados
+- **Clima** - temperatura, media movel de 3 meses, chuva mensal e anomalia de
+  temperatura por estado
+- **Safra** - producao, rendimento e variacao anual por estado e cultura
+- **Clima x Safra** - chuva ou temperatura acumulada no ciclo da cultura contra
+  o rendimento, com a correlacao da amostra
+
+![Clima x Safra](docs/img/clima_x_safra.png)
+
+## O que os dados mostram
+
+Com os filtros padrao (soja em MT, PR e RS), a chuva acumulada no ciclo tem
+correlacao de 0,88 com o rendimento. O numero e puxado pelo RS: as safras
+2022/23 e 2024/25 tiveram 540 e 660 mm no ciclo e os menores rendimentos da
+amostra. So com MT e PR a correlacao cai para 0,56; com todos os estados que
+plantam soja (70 safras), fica em 0,07.
+
+Ou seja, secas fortes aparecem nos dados, mas a chuva total do ciclo sozinha
+nao explica o rendimento no pais. Irrigacao, distribuicao da chuva ao longo
+do ciclo e diferencas de manejo entre regioes pesam, e o projeto nao mede
+essas variaveis. A cada ano novo de dados a amostra cresce.
 
 ## Tecnologias
 
@@ -35,9 +63,31 @@ INMET (dados historicos das estacoes automaticas):
 IBGE/SIDRA:
 
 - PAM (tabela 5457): area plantada, area colhida, producao e rendimento anuais
-- LSPA (tabela 6588): estimativas mensais da safra
+- LSPA (tabela 6588): estimativas mensais da safra, usadas para conferir o
+  milho da PAM
+
+IBGE/malhas: contorno dos estados para o mapa, versionado em `dashboard/assets`.
 
 ## Como rodar
+
+### Com Docker (inclui Airflow)
+
+```
+cp .env.example .env
+docker compose up -d
+```
+
+- Dashboard: http://localhost:8501
+- Airflow: http://localhost:8080 (usuario `admin`, senha definida em
+  `AIRFLOW_PASSWORD` no `.env`; o padrao e `admin`)
+
+Na primeira subida a DAG `agroclima_pipeline` ja roda uma vez: baixa cerca de
+300 MB do INMET e leva uns 15 minutos. O dashboard mostra dados quando ela
+termina. As execucoes seguintes verificam o ETag dos arquivos do INMET e so
+baixam o que mudou, entao levam menos de um minuto.
+
+O historico do Airflow fica no volume `airflow_estado` e sobrevive a
+`docker compose down`. Para apagar tudo, use `docker compose down -v`.
 
 ### Local (sem Docker)
 
@@ -53,25 +103,11 @@ python -m streamlit run dashboard/app.py
 
 Acesse: http://localhost:8501
 
-Para rodar os testes, instale tambem as dependencias de desenvolvimento
-(`pytest` e `responses`, que nao entram nas imagens de producao). O
-`dbt deps` tambem e necessario aqui: `test_pipeline_smoke.py` roda um
-`dbt build` de verdade e depende do pacote `dbt_utils`.
-
-```
-pip install -r requirements-dev.txt
-cd dbt && python -m dbt.cli.main deps && cd ..
-python -m pytest
-```
-
-A primeira execucao baixa cerca de 300 MB do INMET e leva alguns minutos. As
-seguintes verificam o ETag do arquivo e so baixam o que mudou.
-
-Para avaliar o projeto sem esperar esse download, rode
+Para avaliar o projeto sem esperar o download do INMET, rode
 `python scripts/seed_bronze_dev.py` antes: ele grava uma camada Bronze
 fabricada e pequena, no mesmo formato da ingestao real, o suficiente para
-rodar o dbt (`cd dbt && python -m dbt.cli.main build`) e abrir o dashboard
-com dados.
+rodar o dbt (`cd dbt && python -m dbt.cli.main build`) e abrir o dashboard.
+O seed so tem DF, SP e MG; selecione esses estados no filtro.
 
 `dbt` e `streamlit` sao chamados como modulo (`python -m ...`) porque, no
 Python distribuido pela Microsoft Store, os console scripts desses pacotes
@@ -81,21 +117,23 @@ comandos `dbt` e `streamlit run` diretos tambem funcionam.
 O Airflow nao roda nativamente no Windows; use o Docker para a parte de
 agendamento.
 
-### Com Docker (inclui Airflow)
+### Testes
+
+Instale tambem as dependencias de desenvolvimento (`pytest` e `responses`,
+que nao entram nas imagens de producao). O `dbt deps` e necessario:
+`test_pipeline_smoke.py` roda um `dbt build` de verdade sobre dados
+fabricados e depende do pacote `dbt_utils`.
 
 ```
-cp .env.example .env
-docker compose up -d
+pip install -r requirements-dev.txt
+cd dbt && python -m dbt.cli.main deps && cd ..
+python -m pytest
 ```
 
-- Dashboard: http://localhost:8501
-- Airflow: http://localhost:8080 (usuario e senha em `.env`, padrao admin/admin)
-
-O container do dashboard so mostra dados depois que o pipeline (local ou via
-DAG do Airflow) gerar `data/warehouse.duckdb` - os dois servicos compartilham
-o diretorio `data/` como volume. Para popular rapido sem esperar o
-agendamento, rode o pipeline localmente (secao anterior) antes de subir o
-Docker, ou dispare a DAG `agroclima_pipeline` manualmente pela UI do Airflow.
+A suite nao acessa a rede: as APIs sao simuladas e o dashboard e testado
+contra um DuckDB temporario. Os testes do dbt verificam regras que valem para
+qualquer dado (por exemplo, que a chuva de um estado e a media entre as
+estacoes, nao a soma) e rodam tanto no seed quanto na base real.
 
 ## Makefile
 
@@ -119,8 +157,10 @@ make down         # docker compose down
 - `scripts/seed_bronze_dev.py` - gera uma Bronze fake para desenvolvimento local
 - `dbt/models/staging` - limpeza e padronizacao (Silver)
 - `dbt/models/marts` - KPIs e cruzamentos (Gold)
+- `dbt/tests` - testes singulares do dbt
 - `dashboard` - aplicacao Streamlit
 - `airflow/dags` - agendamento
+- `airflow/iniciar.sh` - partida do container do Airflow (usuario e dependencias do dbt)
 - `requirements.txt` - dependencias para rodar local e o dashboard
 - `requirements-dev.txt` - `requirements.txt` mais `pytest` e `responses`,
   usadas so pela suite de testes
@@ -148,9 +188,14 @@ make down         # docker compose down
   sobre uma fracao do periodo, mas apresentado como se fosse o total. Nao
   publicar a linha e preferivel a publicar um numero errado - por isso a
   pagina de Clima x Safra pode nao cobrir todos os anos que a pagina de
-  Safra cobre.
+  Safra cobre. A safra de soja 2021/22, por exemplo, fica de fora porque o
+  clima comeca em janeiro de 2022.
+- Com cinco anos de clima, cada estado tem poucas safras completas, e a
+  correlacao da pagina Clima x Safra descreve a amostra selecionada, nao uma
+  relacao de causa.
 
 ## Fontes
 
 - [INMET Dados Historicos](https://portal.inmet.gov.br/dadoshistoricos)
 - [IBGE API de agregados](https://servicodados.ibge.gov.br/api/docs/agregados?versao=3)
+- [IBGE API de malhas](https://servicodados.ibge.gov.br/api/docs/malhas?versao=3)

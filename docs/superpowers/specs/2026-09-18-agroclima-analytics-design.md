@@ -232,6 +232,13 @@ a um `BashOperator` porque reaproveita a invocação do dbt já centralizada em
 `src/pipeline.py` (mesmo `sys.executable -m dbt.cli.main`, mesmo cwd), em
 vez de duplicar esse comando no DAG.
 
+O container roda `airflow standalone` a partir de `airflow/iniciar.sh`, que
+antes instala os pacotes do dbt, migra o banco e cria o usuário `admin` com a
+senha do `.env` (sem isso o standalone sorteia uma senha a cada banco novo).
+A DAG nasce ativa, então a primeira subida já dispara uma execução. O banco
+de metadados e os logs das tarefas ficam no volume nomeado `airflow_estado`,
+que sobrevive à recriação do container e a `docker compose down`.
+
 ## 8. Dashboard
 
 Streamlit + Plotly, 4 páginas em `dashboard/views/`, com filtros de UF,
