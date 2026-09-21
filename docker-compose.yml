@@ -13,6 +13,11 @@ services:
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/airflow/dags
       _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_USER:-admin}
       _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_PASSWORD:-admin}
+      # target/ e logs/ do dbt ficam fora do volume dbt/: o cache de parse que o
+      # dbt grava ao rodar no Windows guarda caminhos com barra invertida e
+      # quebra o dbt do container quando os dois compartilham o mesmo target/.
+      DBT_TARGET_PATH: /opt/airflow/dbt_artifacts/target
+      DBT_LOG_PATH: /opt/airflow/dbt_artifacts/logs
     volumes:
       - ./airflow:/opt/airflow/airflow
       - ./src:/opt/airflow/src
