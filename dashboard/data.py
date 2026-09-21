@@ -55,3 +55,20 @@ def clima_safra(culturas: tuple[str, ...], ano_ini: int, ano_fim: int) -> pd.Dat
         f"select * from gold_clima_safra where cultura in ({marcadores}) and ano between ? and ?",
         list(culturas) + [ano_ini, ano_fim],
     )
+
+
+@st.cache_data(ttl=600)
+def producao_por_uf(cultura: str, ano_ini: int, ano_fim: int) -> pd.DataFrame:
+    return consultar(
+        """
+        select uf_codigo, uf, ano, producao
+        from gold_safra_uf
+        where cultura = ?
+          and ano = (
+              select max(ano) from gold_safra_uf
+              where cultura = ? and ano between ? and ?
+          )
+        order by uf
+        """,
+        [cultura, cultura, ano_ini, ano_fim],
+    )

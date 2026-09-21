@@ -1,4 +1,5 @@
 import importlib
+import json
 
 import duckdb
 import pytest
@@ -76,6 +77,7 @@ def banco_gold(tmp_path, monkeypatch):
     data.safra.clear()
     data.clima_mensal.clear()
     data.clima_safra.clear()
+    data.producao_por_uf.clear()
     return caminho
 
 
@@ -150,3 +152,60 @@ def test_filtro_vazio_nao_chama_a_camada_de_dados(monkeypatch):
 
     assert not at.exception
     assert [w.value for w in at.warning] == ["Selecione ao menos uma UF e uma cultura."]
+
+
+CODIGOS_IBGE_UF = {
+    "11", "12", "13", "14", "15", "16", "17", "21", "22", "23", "24", "25", "26", "27",
+    "28", "29", "31", "32", "33", "35", "41", "42", "43", "50", "51", "52", "53",
+}
+
+
+def test_producao_por_uf_traz_todas_as_ufs_do_ultimo_ano_do_periodo(banco_gold):
+    df = data.producao_por_uf("soja", 2022, 2026)
+    assert set(df["ano"]) == {2023}
+    assert set(df["uf"]) == {"DF", "SP", "MG", "MT", "PR", "RS"}
+    assert {"uf_codigo", "uf", "ano", "producao"} <= set(df.columns)
+
+    so_2022 = data.producao_por_uf("soja", 2022, 2022)
+    assert list(so_2022["uf"]) == ["DF"]
+
+
+def test_malha_das_ufs_cobre_os_27_codigos_ibge():
+    malha = overview.malha_ufs()
+    codigos = [f["properties"]["codarea"] for f in malha["features"]]
+    assert len(codigos) == 27
+    assert set(codigos) == CODIGOS_IBGE_UF
+
+
+def test_overview_mostra_mapa_e_barras(banco_gold):
+    at = AppTest.from_file("dashboard/app.py")
+    at.run(timeout=30)
+    assert not at.exception
+    tipos = [json.loads(g.proto.spec)["data"][0]["type"] for g in at.get("plotly_chart")]
+    assert tipos[0] == "choropleth"
+    assert "bar" in tipos[1:]
+
+
+def test_malha_das_ufs_tem_aneis_externos_no_sentido_horario():
+    # O plotly desenha mapas com o d3-geo, que le um anel externo anti-horario
+    # como "o globo menos este poligono" e pinta o mapa inteiro.
+    def area(anel):
+        return sum(x1 * y2 - x2 * y1 for (x1, y1), (x2, y2) in zip(anel, anel[1:])) / 2
+
+    for feature in overview.malha_ufs()["features"]:
+        geometria = feature["geometry"]
+        poligonos = geometria["coordinates"]
+        if geometria["type"] == "Polygon":
+            poligonos = [poligonos]
+        for poligono in poligonos:
+            assert area(poligono[0]) < 0, feature["properties"]["codarea"]
+
+
+def test_mapa_nao_captura_a_rolagem_da_pagina(banco_gold):
+    # Com scroll-zoom ligado (padrao do plotly em mapas geo), rolar a pagina por
+    # cima do mapa encolhe o pais em vez de descer a pagina.
+    at = AppTest.from_file("dashboard/app.py")
+    at.run(timeout=30)
+    mapa = at.get("plotly_chart")[0]
+    assert json.loads(mapa.proto.spec)["data"][0]["type"] == "choropleth"
+    assert json.loads(mapa.proto.config).get("scrollZoom") is False
