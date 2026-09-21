@@ -35,15 +35,15 @@ agregado as (
         sum(precipitacao)    as precip_ciclo,
         avg(temp_media)      as temp_media_ciclo,
         min(n_estacoes)      as n_estacoes,
-        count(distinct mes)  as meses_observados,
+        count(distinct case when precipitacao is not null then mes end) as meses_observados,
         max(meses_esperados) as meses_esperados
     from meses_do_ciclo
     group by 1, 2, 3
 )
 
--- So publica safras com o ciclo completo: uma safra com meses faltando no
--- meio do ciclo (por exemplo o ano-safra na borda da janela climatica
--- disponivel) teria precip_ciclo/temp_media_ciclo calculados sobre uma
+-- So publica safras com o ciclo completo: um mes so conta como observado se a
+-- chuva dele foi publicada (mes inteiro medido). Uma safra com meses faltando
+-- (por exemplo o ano-safra na borda da janela climatica disponivel) teria precip_ciclo/temp_media_ciclo calculados sobre uma
 -- fracao do ciclo, mas apresentados como se fossem o total - um numero
 -- errado e mais enganoso que a ausencia da linha. meses_observados e
 -- meses_esperados ficam expostos para quem quiser entender por que um ano

@@ -29,9 +29,15 @@ mensal as (
         avg(d.temp_media)                       as temp_media,
         max(d.temp_max)                         as temp_max,
         min(d.temp_min)                         as temp_min,
-        sum(d.precipitacao)                     as precipitacao,
-        -- dia seco: media da UF abaixo de 1 mm, o limiar usual de dia sem chuva
-        count(case when d.precipitacao < 1 then 1 end) as dias_sem_chuva,
+        -- Chuva e dias secos so com o mes inteiro medido: com dias sem nenhuma
+        -- medicao na UF, a soma cobriria so parte do mes e pareceria seca.
+        -- Dia seco: media da UF abaixo de 1 mm, o limiar usual de dia sem chuva.
+        case when count(d.precipitacao) = day(last_day(min(d.data)))
+             then sum(d.precipitacao)
+        end                                     as precipitacao,
+        case when count(d.precipitacao) = day(last_day(min(d.data)))
+             then count(case when d.precipitacao < 1 then 1 end)
+        end                                     as dias_sem_chuva,
         max(e.n_estacoes)                       as n_estacoes
     from diario_uf d
     inner join estacoes_no_mes e

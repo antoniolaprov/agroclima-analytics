@@ -1,5 +1,5 @@
 -- A precipitacao mensal de uma UF e a media entre as estacoes, nao a soma:
--- somar as 40 estacoes do RS daria cerca de 40 vezes a chuva real. Em cada dia
+-- somar as dezenas de estacoes do RS daria dezenas de vezes a chuva real. Em cada dia
 -- a media entre estacoes nunca passa da maior leitura do dia, entao o total do
 -- mes nao pode passar da soma dos maximos diarios.
 with maximo_diario as (

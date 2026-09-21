@@ -8,6 +8,7 @@ src.ingestion.base.write_parquet.
 Uso: python scripts/seed_bronze_dev.py
 """
 
+import calendar
 import datetime as dt
 import sys
 from pathlib import Path
@@ -103,40 +104,45 @@ def gerar_clima_horario() -> pd.DataFrame:
     # hoje - o dado historico continua valido.
     add_dia("A004", "DF", dt.date(2026, 1, 1), range(0, 20))
 
-    # Serie mensal de 2022 a 2024 para DF, SP e MG (as mesmas UFs da PAM
-    # fabricada abaixo), um dia por mes com 20 horas observadas (acima do
-    # corte de stg_clima_diario). Sem isso a camada Gold nao teria: (a) meses
-    # suficientes para a media movel de 3 meses, (b) variacao ano a ano para
-    # produzir anomalias nao triviais, nem (c) cobertura de meses fora do ano
-    # civil da safra (out-dez do ano anterior) exigida pelos ciclos de
-    # soja/milho/cafe em gold_clima_safra.
+    # Serie diaria de 2022 a 2024 para DF, SP e MG (as mesmas UFs da PAM
+    # fabricada abaixo), com 20 horas observadas por dia (acima do corte de
+    # stg_clima_diario). A Gold precisa de meses completos: a chuva de um mes
+    # so e publicada quando todos os dias tem medicao, e o ciclo de uma safra
+    # so conta com meses publicados. SP tem duas estacoes com chuvas
+    # diferentes, para que somar em vez de tirar a media apareca nos testes.
     temp_e_precip_por_mes = {
         1: (26.0, 1.6), 2: (25.5, 1.5), 3: (24.5, 1.3), 4: (22.5, 0.9),
         5: (20.0, 0.5), 6: (18.0, 0.2), 7: (17.5, 0.1), 8: (19.0, 0.2),
         9: (21.5, 0.4), 10: (23.5, 0.9), 11: (25.0, 1.3), 12: (26.0, 1.6),
     }
     deslocamento_por_uf = {"DF": -1.5, "SP": 0.0, "MG": 1.0}
-    estacao_por_uf = {"DF": "A001", "SP": "A002", "MG": "A003"}
+    estacoes_por_uf = {"DF": [("A001", 1.0)], "SP": [("A002", 1.0), ("A005", 1.5)], "MG": [("A003", 1.0)]}
 
     for ano in (2022, 2023, 2024):
         tendencia_ano = (ano - 2022) * 0.3
         for mes in range(1, 13):
             temp_mes, fator_precip_mes = temp_e_precip_por_mes[mes]
-            for uf, cd_estacao in estacao_por_uf.items():
+            dias_no_mes = calendar.monthrange(ano, mes)[1]
+            for uf, estacoes in estacoes_por_uf.items():
                 if uf == "MG" and ano == 2023 and mes == 6:
-                    # Lacuna proposital: MG pula junho/2023. Cobre o teste de
-                    # que temp_media_movel_3m em gold_clima_uf_mensal nao
-                    # soma um mes fora do alcance real de 3 meses quando ha
-                    # um mes ausente no meio da serie.
+                    # Lacuna proposital: MG pula junho/2023 inteiro. Cobre a
+                    # media movel de 3 meses com um mes ausente no meio da serie.
                     continue
-                add_dia(
-                    cd_estacao,
-                    uf,
-                    dt.date(ano, mes, 15),
-                    range(0, 20),
-                    deslocamento_temp=temp_mes + deslocamento_por_uf[uf] + tendencia_ano - 20,
-                    fator_precip=fator_precip_mes,
-                )
+                for dia in range(1, dias_no_mes + 1):
+                    if uf == "SP" and ano == 2023 and mes == 3 and dia <= 10:
+                        # Lacuna proposital: SP sem medicao de 1 a 10/03/2023.
+                        # A chuva desse mes nao pode ser publicada, e a safra
+                        # de soja 2022/23 de SP fica sem ciclo completo.
+                        continue
+                    for cd_estacao, fator_estacao in estacoes:
+                        add_dia(
+                            cd_estacao,
+                            uf,
+                            dt.date(ano, mes, dia),
+                            range(0, 20),
+                            deslocamento_temp=temp_mes + deslocamento_por_uf[uf] + tendencia_ano - 20,
+                            fator_precip=fator_precip_mes * fator_estacao,
+                        )
 
     df = pd.DataFrame(linhas)
     return _com_metadados(df)

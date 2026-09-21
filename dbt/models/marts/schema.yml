@@ -33,6 +33,8 @@ models:
 
   - name: gold_clima_safra
     columns:
+      - name: precip_ciclo
+        data_tests: [not_null]
       - name: rendimento
         data_tests:
           - dbt_utils.accepted_range:
