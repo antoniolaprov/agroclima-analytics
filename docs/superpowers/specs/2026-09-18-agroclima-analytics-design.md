@@ -174,11 +174,17 @@ Materialização: table.
   cada cultura, com chuva acumulada e temperatura média do ciclo ao lado da
   produtividade. Base da análise de correlação.
 
-**Agregação estação → UF.** A média por UF é simples entre estações, não
-ponderada por área. É uma simplificação assumida: estados grandes têm
-cobertura desigual (RS tem 98 estações, vários estados têm menos de 10). O
-campo `n_estacoes` fica exposto no dashboard para o leitor julgar a
-confiabilidade de cada célula.
+**Agregação estação → UF.** Em dois passos: primeiro o dia da UF, como média
+entre as estações que reportaram naquele dia; depois o mês, somando a chuva
+diária da UF e contando como seco o dia em que essa média ficou abaixo de
+1 mm. Agregar direto por mês somaria a chuva de todas as estações (dezenas de
+vezes o valor real nos estados com muitas estações) e contaria como seco
+qualquer dia em que uma única estação ficou sem chuva.
+
+A média entre estações é simples, não ponderada por área. É uma simplificação
+assumida: estados grandes têm cobertura desigual (RS tem 98 estações, vários
+estados têm menos de 10). O campo `n_estacoes` fica exposto no dashboard para
+o leitor julgar a confiabilidade de cada célula.
 
 **Janela de ciclo por cultura.** Definida em um seed
 `seeds/ciclo_cultura.csv` com mês de plantio e de colheita por cultura e

@@ -1,16 +1,41 @@
-with mensal as (
+-- A UF e agregada em dois passos: primeiro o dia (media entre as estacoes que
+-- reportaram), depois o mes. Agregar direto por mes somaria a chuva de todas as
+-- estacoes do estado e contaria como seco qualquer dia em que uma unica estacao
+-- ficou sem chuva.
+with diario_uf as (
     select
         uf,
-        year(data)  as ano,
-        month(data) as mes,
-        year(data) * 12 + month(data)            as mes_indice,
-        avg(temp_media)                          as temp_media,
-        max(temp_max)                            as temp_max,
-        min(temp_min)                            as temp_min,
-        sum(precipitacao)                        as precipitacao,
-        count(distinct case when precipitacao = 0 then data end) as dias_sem_chuva,
-        count(distinct cd_estacao)               as n_estacoes
+        data,
+        avg(temp_media)   as temp_media,
+        max(temp_max)     as temp_max,
+        min(temp_min)     as temp_min,
+        avg(precipitacao) as precipitacao
     from {{ ref('stg_clima_diario') }}
+    group by 1, 2
+),
+
+estacoes_no_mes as (
+    select uf, year(data) as ano, month(data) as mes, count(distinct cd_estacao) as n_estacoes
+    from {{ ref('stg_clima_diario') }}
+    group by 1, 2, 3
+),
+
+mensal as (
+    select
+        d.uf,
+        year(d.data)  as ano,
+        month(d.data) as mes,
+        year(d.data) * 12 + month(d.data)       as mes_indice,
+        avg(d.temp_media)                       as temp_media,
+        max(d.temp_max)                         as temp_max,
+        min(d.temp_min)                         as temp_min,
+        sum(d.precipitacao)                     as precipitacao,
+        -- dia seco: media da UF abaixo de 1 mm, o limiar usual de dia sem chuva
+        count(case when d.precipitacao < 1 then 1 end) as dias_sem_chuva,
+        max(e.n_estacoes)                       as n_estacoes
+    from diario_uf d
+    inner join estacoes_no_mes e
+        on e.uf = d.uf and e.ano = year(d.data) and e.mes = month(d.data)
     group by 1, 2, 3
 ),
 
