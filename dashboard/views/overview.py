@@ -46,7 +46,10 @@ def render(filtros):
     st.caption(f"{cultura.capitalize()} em {ano}, nas UFs selecionadas")
     col1, col2, col3 = st.columns(3)
     col1.metric("Producao (t)", graficos.numero(ultimo["producao"].sum()))
-    col2.metric("Rendimento medio (kg/ha)", graficos.numero(ultimo["rendimento"].mean()))
+    # producao total sobre area colhida total: a media simples dos rendimentos
+    # pesaria um estado pequeno tanto quanto o MT
+    rendimento = ultimo["producao"].sum() * 1000 / ultimo["area_colhida"].sum()
+    col2.metric("Rendimento medio (kg/ha)", graficos.numero(rendimento))
     col3.metric("Area colhida (ha)", graficos.numero(ultimo["area_colhida"].sum()))
 
     mapa = data.producao_por_uf(cultura, filtros["ano_ini"], filtros["ano_fim"])

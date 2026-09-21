@@ -1,9 +1,13 @@
+import math
+
 import plotly.graph_objects as go
 
 COR_REFERENCIA = "#9a9a96"
 
 
 def numero(valor: float, casas: int = 0) -> str:
+    if not math.isfinite(valor):
+        return "-"
     texto = f"{valor:,.{casas}f}"
     return texto.replace(",", "_").replace(".", ",").replace("_", ".")
 

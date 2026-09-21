@@ -12,9 +12,10 @@ from dashboard.views import clima, clima_safra, overview, safra
 @pytest.fixture
 def banco_gold(tmp_path, monkeypatch):
     """DuckDB temporario com as tres tabelas Gold, no formato que as views
-    esperam. gold_clima_safra tem dois anos por UF: com um ponto so por grupo o
-    plotly nao ajusta a linha de tendencia e a pagina nunca chega a usa-la. Substitui data/warehouse.duckdb (gitignored) para que a suite
-    passe num clone limpo, sem depender do pipeline ter rodado antes."""
+    esperam. Substitui data/warehouse.duckdb (gitignored) para que a suite
+    passe num clone limpo, sem depender do pipeline ter rodado antes.
+    gold_clima_safra tem dois anos por UF: com um ponto so por grupo o plotly
+    nao ajusta a linha de tendencia e a pagina nunca chega a usa-la."""
     caminho = tmp_path / "warehouse.duckdb"
     con = duckdb.connect(str(caminho))
     con.execute(
@@ -255,3 +256,14 @@ def test_clima_safra_nomeia_a_linha_de_tendencia_em_portugues(banco_gold):
     nomes = [trace.get("name") for trace in json.loads(at.get("plotly_chart")[0].proto.spec)["data"]]
     assert "Tendencia geral" in nomes
     assert not any("Trendline" in (nome or "") for nome in nomes)
+
+
+def test_rendimento_medio_e_producao_sobre_area(banco_gold):
+    # DF, SP e MG em 2023: 7.500 t em 2.390 ha dao 3.138 kg/ha. A media simples
+    # dos tres rendimentos (3.160) pesaria o DF tanto quanto um estado grande.
+    at = AppTest.from_file("dashboard/app.py")
+    at.run(timeout=30)
+    at.sidebar.multiselect[0].set_value(["DF", "SP", "MG"])
+    at.run(timeout=30)
+    rendimento = next(m for m in at.metric if m.label.startswith("Rendimento"))
+    assert rendimento.value == "3.138"
