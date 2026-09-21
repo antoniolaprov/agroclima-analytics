@@ -153,6 +153,9 @@ make down         # docker compose down
 
 ## Estrutura
 
+O desenho completo, com as decisoes e o porque de cada uma, esta em
+[docs/design.md](docs/design.md).
+
 - `src/ingestion` - clientes das APIs, gravam Parquet em `data/bronze`
 - `scripts/seed_bronze_dev.py` - gera uma Bronze fake para desenvolvimento local
 - `dbt/models/staging` - limpeza e padronizacao (Silver)

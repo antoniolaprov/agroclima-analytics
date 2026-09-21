@@ -1,7 +1,6 @@
 # AgroClima Analytics — Design
 
 Data: 2026-09-18
-Status: aprovado para planejamento de implementação
 
 ## 1. Objetivo
 
