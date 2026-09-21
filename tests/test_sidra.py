@@ -2,6 +2,8 @@ import json
 import math
 from pathlib import Path
 
+import pandas as pd
+
 from src import config
 from src.ingestion import sidra_api
 
@@ -63,3 +65,20 @@ def test_montar_url_constroi_string_esperada():
         "?localidades=N3[all]&classificacao=782[40124,40122]"
     )
     assert url == esperado
+
+
+def test_ingest_lspa_pede_so_os_meses_da_janela_do_clima(monkeypatch):
+    urls = []
+
+    class Resposta:
+        def json(self):
+            return []
+
+    monkeypatch.setattr(sidra_api.base, "http_get", lambda url, **kw: urls.append(url) or Resposta())
+    monkeypatch.setattr(sidra_api, "parse_resposta", lambda payload, mapa: pd.DataFrame({"cultura_codigo": []}))
+    monkeypatch.setattr(sidra_api.base, "write_parquet", lambda *a, **kw: None)
+    monkeypatch.setattr(sidra_api.config, "ANOS_CLIMA", (2022, 2023, 2024))
+
+    sidra_api.ingest_lspa()
+
+    assert "/6588/periodos/202201-202412/" in urls[0]

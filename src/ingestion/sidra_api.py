@@ -57,7 +57,11 @@ def ingest_pam() -> int:
 
 
 def ingest_lspa() -> int:
-    url = montar_url("6588", "all", VARIAVEIS_LSPA, "48", list(config.CULTURAS_LSPA))
+    # A serie completa da LSPA passa do limite de valores por consulta do SIDRA,
+    # que responde 500. Ela so e usada nos anos da janela do clima, entao a
+    # consulta fica restrita a esses meses.
+    periodos = f"{min(config.ANOS_CLIMA)}01-{max(config.ANOS_CLIMA)}12"
+    url = montar_url("6588", periodos, VARIAVEIS_LSPA, "48", list(config.CULTURAS_LSPA))
     df = parse_resposta(base.http_get(url, timeout=180).json(), config.CULTURAS_LSPA)
     df["safra_ciclo"] = df["cultura_codigo"].map(config.CICLO_LSPA)
     base.write_parquet(df, "lspa", url)
