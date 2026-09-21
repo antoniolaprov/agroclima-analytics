@@ -135,7 +135,7 @@ recebe `_ingested_at` e `_source_url`.
 | `estacoes` | `/estacoes/T` | carga completa a cada execução |
 | `clima_horario` | ZIP anual | condicional, particionado por ano |
 | `pam` | SIDRA 5457 | carga completa (tabela pequena) |
-| `lspa` | SIDRA 6588 | carga completa (tabela pequena) |
+| `lspa` | SIDRA 6588 | carga completa restrita aos anos do clima (a série inteira passa do limite de valores por consulta do SIDRA e ele responde 500) |
 
 **Ingestão condicional do ZIP.** Antes de baixar, o ingestor faz `HEAD` no
 ZIP e compara `ETag`/`Last-Modified` com o valor gravado em
@@ -195,7 +195,10 @@ Testes dbt, sem limiar percentual:
 - faixas plausíveis: temperatura entre -10 e 50 °C, precipitação >= 0,
   umidade entre 0 e 100, produtividade > 0
 - teste singular: a soma de milho 1ª + 2ª safra do LSPA não pode divergir
-  mais de 15% do milho do PAM no mesmo ano
+  mais de 5% do milho do PAM no total nacional do mesmo ano. Por UF a
+  comparação não serve: em estados de produção pequena a estimativa da LSPA e
+  o censo da PAM divergem de verdade (mais de 100% no AM em 2022), enquanto
+  no total do país ficaram a menos de 1% em 2022-2025
 
 Um teste que falha derruba o `dbt build` e a DAG. As tabelas Gold da
 execução anterior permanecem no DuckDB, então o dashboard continua servindo
