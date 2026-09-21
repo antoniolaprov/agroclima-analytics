@@ -12,7 +12,8 @@ from dashboard.views import clima, clima_safra, overview, safra
 @pytest.fixture
 def banco_gold(tmp_path, monkeypatch):
     """DuckDB temporario com as tres tabelas Gold, no formato que as views
-    esperam. Substitui data/warehouse.duckdb (gitignored) para que a suite
+    esperam. gold_clima_safra tem dois anos por UF: com um ponto so por grupo o
+    plotly nao ajusta a linha de tendencia e a pagina nunca chega a usa-la. Substitui data/warehouse.duckdb (gitignored) para que a suite
     passe num clone limpo, sem depender do pipeline ter rodado antes."""
     caminho = tmp_path / "warehouse.duckdb"
     con = duckdb.connect(str(caminho))
@@ -66,8 +67,11 @@ def banco_gold(tmp_path, monkeypatch):
     con.execute(
         """
         insert into gold_clima_safra values
+            ('DF', 'soja', 2022, 3050, 430.0, 23.9, 1, 6, 6),
             ('DF', 'soja', 2023, 3200, 480.0, 23.5, 1, 6, 6),
+            ('SP', 'soja', 2022, 3010, 470.0, 23.1, 1, 6, 6),
             ('SP', 'soja', 2023, 3150, 510.0, 22.8, 1, 6, 6),
+            ('MG', 'soja', 2022, 2950, 455.0, 22.4, 1, 6, 6),
             ('MG', 'soja', 2023, 3080, 495.0, 22.1, 1, 6, 6)
         """
     )
@@ -209,3 +213,16 @@ def test_mapa_nao_captura_a_rolagem_da_pagina(banco_gold):
     mapa = at.get("plotly_chart")[0]
     assert json.loads(mapa.proto.spec)["data"][0]["type"] == "choropleth"
     assert json.loads(mapa.proto.config).get("scrollZoom") is False
+
+
+@pytest.mark.parametrize("pagina", ["Visao geral", "Clima", "Safra", "Clima x Safra"])
+def test_cada_pagina_renderiza_graficos_com_dados(banco_gold, pagina):
+    # Seleciona UFs que existem na fixture: com os filtros padrao algumas
+    # paginas mostram "Sem dados" e nunca chegam a desenhar os graficos.
+    at = AppTest.from_file("dashboard/app.py")
+    at.run(timeout=30)
+    at.sidebar.multiselect[0].set_value(["DF", "SP", "MG"])
+    at.sidebar.radio[0].set_value(pagina)
+    at.run(timeout=30)
+    assert not at.exception, at.exception
+    assert at.get("plotly_chart"), f"{pagina} nao desenhou nenhum grafico"
