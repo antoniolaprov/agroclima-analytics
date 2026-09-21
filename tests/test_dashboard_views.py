@@ -35,7 +35,10 @@ def banco_gold(tmp_path, monkeypatch):
             ('MG', '31', 'soja', 2023, 700, 650, 2000, 3080, null, null),
             ('MT', '51', 'soja', 2023, 5000, 4800, 15000, 3400, null, null),
             ('PR', '41', 'soja', 2023, 4000, 3800, 12000, 3300, null, null),
-            ('RS', '43', 'soja', 2023, 3000, 2900, 9000, 3100, null, null)
+            ('RS', '43', 'soja', 2023, 3000, 2900, 9000, 3100, null, null),
+            ('DF', '53', 'milho', 2022, 600, 580, 3500, 6000, null, null),
+            ('DF', '53', 'milho', 2023, 620, 600, 3900, 6500, 11.43, 8.33),
+            ('SP', '35', 'milho', 2023, 900, 870, 5200, 5980, null, null)
         """
     )
     con.execute(
@@ -72,7 +75,10 @@ def banco_gold(tmp_path, monkeypatch):
             ('SP', 'soja', 2022, 3010, 470.0, 23.1, 1, 6, 6),
             ('SP', 'soja', 2023, 3150, 510.0, 22.8, 1, 6, 6),
             ('MG', 'soja', 2022, 2950, 455.0, 22.4, 1, 6, 6),
-            ('MG', 'soja', 2023, 3080, 495.0, 22.1, 1, 6, 6)
+            ('MG', 'soja', 2023, 3080, 495.0, 22.1, 1, 6, 6),
+            ('DF', 'milho', 2022, 6000, 690.0, 23.0, 1, 11, 11),
+            ('DF', 'milho', 2023, 6500, 720.0, 22.7, 1, 11, 11),
+            ('SP', 'milho', 2023, 5980, 760.0, 22.2, 1, 11, 11)
         """
     )
     con.close()
@@ -226,3 +232,26 @@ def test_cada_pagina_renderiza_graficos_com_dados(banco_gold, pagina):
     at.run(timeout=30)
     assert not at.exception, at.exception
     assert at.get("plotly_chart"), f"{pagina} nao desenhou nenhum grafico"
+
+
+@pytest.mark.parametrize("pagina", ["Visao geral", "Clima", "Safra", "Clima x Safra"])
+def test_cada_pagina_renderiza_com_duas_culturas(banco_gold, pagina):
+    at = AppTest.from_file("dashboard/app.py")
+    at.run(timeout=30)
+    at.sidebar.multiselect[0].set_value(["DF", "SP", "MG"])
+    at.sidebar.multiselect[1].set_value(["soja", "milho"])
+    at.sidebar.radio[0].set_value(pagina)
+    at.run(timeout=30)
+    assert not at.exception, at.exception
+    assert at.get("plotly_chart"), f"{pagina} nao desenhou nenhum grafico"
+
+
+def test_clima_safra_nomeia_a_linha_de_tendencia_em_portugues(banco_gold):
+    at = AppTest.from_file("dashboard/app.py")
+    at.run(timeout=30)
+    at.sidebar.multiselect[0].set_value(["DF", "SP", "MG"])
+    at.sidebar.radio[0].set_value("Clima x Safra")
+    at.run(timeout=30)
+    nomes = [trace.get("name") for trace in json.loads(at.get("plotly_chart")[0].proto.spec)["data"]]
+    assert "Tendencia geral" in nomes
+    assert not any("Trendline" in (nome or "") for nome in nomes)

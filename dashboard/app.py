@@ -1,5 +1,6 @@
 import streamlit as st
 
+from dashboard import cores
 from dashboard.views import clima, clima_safra, overview, safra
 
 st.set_page_config(page_title="AgroClima Analytics", layout="wide")
@@ -21,7 +22,12 @@ st.sidebar.title("AgroClima")
 pagina = st.sidebar.radio("Pagina", list(PAGINAS))
 
 filtros = {
-    "ufs": tuple(st.sidebar.multiselect("UF", UFS, default=["MT", "PR", "RS"])),
+    "ufs": tuple(
+        st.sidebar.multiselect(
+            "UF", UFS, default=["MT", "PR", "RS"], max_selections=len(cores.PALETA),
+            help="Ate 8 UFs, uma cor para cada.",
+        )
+    ),
     "culturas": tuple(st.sidebar.multiselect("Cultura", CULTURAS, default=["soja"])),
     "ano_ini": st.sidebar.number_input("Ano inicial", 2022, 2026, 2022),
     "ano_fim": st.sidebar.number_input("Ano final", 2022, 2026, 2026),
