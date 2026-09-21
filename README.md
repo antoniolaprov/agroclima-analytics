@@ -39,7 +39,7 @@ Com os filtros padrao (soja em MT, PR e RS), a chuva acumulada no ciclo tem
 correlacao de 0,88 com o rendimento. O numero e puxado pelo RS: as safras
 2022/23 e 2024/25 tiveram 540 e 660 mm no ciclo e os menores rendimentos da
 amostra. So com MT e PR a correlacao cai para 0,56; com todos os estados que
-plantam soja (70 safras), fica em 0,07.
+plantam soja (68 safras), fica em 0,10.
 
 Ou seja, secas fortes aparecem nos dados, mas a chuva total do ciclo sozinha
 nao explica o rendimento no pais. Irrigacao, distribuicao da chuva ao longo
@@ -87,7 +87,15 @@ termina. As execucoes seguintes verificam o ETag dos arquivos do INMET e so
 baixam o que mudou, entao levam menos de um minuto.
 
 O historico do Airflow fica no volume `airflow_estado` e sobrevive a
-`docker compose down`. Para apagar tudo, use `docker compose down -v`.
+`docker compose down`. `docker compose down -v` apaga esse historico; os dados
+baixados e o `warehouse.duckdb` ficam em `data/` e continuam la.
+
+No Linux, acrescente o seu usuario ao `.env` antes de subir, para o container
+conseguir escrever em `dbt/` e `data/`, que sao montados do host:
+
+```
+echo "AIRFLOW_UID=$(id -u)" >> .env
+```
 
 ### Local (sem Docker)
 
@@ -132,8 +140,9 @@ python -m pytest
 
 A suite nao acessa a rede: as APIs sao simuladas e o dashboard e testado
 contra um DuckDB temporario. Os testes do dbt verificam regras que valem para
-qualquer dado (por exemplo, que a chuva de um estado e a media entre as
-estacoes, nao a soma) e rodam tanto no seed quanto na base real.
+qualquer dado e rodam tanto no seed quanto na base real. Por exemplo: a chuva
+de um estado nunca passa do que a estacao mais chuvosa registrou em cada dia,
+o que pega uma soma entre estacoes no lugar da media.
 
 ## Makefile
 
@@ -193,6 +202,9 @@ O desenho completo, com as decisoes e o porque de cada uma, esta em
   pagina de Clima x Safra pode nao cobrir todos os anos que a pagina de
   Safra cobre. A safra de soja 2021/22, por exemplo, fica de fora porque o
   clima comeca em janeiro de 2022.
+- A chuva de um mes so e publicada quando todos os dias tem medicao em alguma
+  estacao do estado. Na base real isso deixa de fora cerca de 3% dos meses,
+  quase todos em RR, SE e RO, e as safras cujo ciclo passa por eles.
 - Com cinco anos de clima, cada estado tem poucas safras completas, e a
   correlacao da pagina Clima x Safra descreve a amostra selecionada, nao uma
   relacao de causa.

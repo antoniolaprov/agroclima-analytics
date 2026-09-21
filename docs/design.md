@@ -180,6 +180,13 @@ diária da UF e contando como seco o dia em que essa média ficou abaixo de
 vezes o valor real nos estados com muitas estações) e contaria como seco
 qualquer dia em que uma única estação ficou sem chuva.
 
+A chuva e os dias secos de um mês só são publicados quando todos os dias do
+mês têm medição em pelo menos uma estação da UF; senão ficam nulos. Um mês
+com dias sem medição somaria só parte da chuva e pareceria seco. Na base
+real isso afeta cerca de 3% dos meses, quase todos em RR, SE e RO, que têm
+poucas estações. Em `gold_clima_safra`, um mês só conta como observado no
+ciclo se a chuva dele foi publicada.
+
 A média entre estações é simples, não ponderada por área. É uma simplificação
 assumida: estados grandes têm cobertura desigual (RS tem 98 estações, vários
 estados têm menos de 10). O campo `n_estacoes` fica exposto no dashboard para
@@ -253,8 +260,9 @@ cultura e período.
 2. **Clima** — séries de temperatura e precipitação, anomalia contra a
    média histórica, média móvel
 3. **Safra** — área, produção, produtividade e variação anual por cultura
-4. **Clima × Safra** — dispersão de chuva ou temperatura contra
-   produtividade, com coeficiente de correlação por cultura
+4. **Clima × Safra** — dispersão de chuva ou temperatura no ciclo contra
+   produtividade, uma cultura por vez, com uma linha de tendência geral e o
+   coeficiente de correlação da amostra selecionada
 
 **Concorrência no DuckDB.** O DuckDB aceita um escritor por vez entre
 processos. Se o dbt estiver escrevendo durante a janela das 06h, o
