@@ -1,18 +1,17 @@
 services:
   airflow:
     build: .
-    # dbt/ e montado como volume (abaixo), por cima do que a imagem tenha
-    # instalado em build time - entao dbt_packages (gitignored, exigido
-    # pelos testes com dbt_utils) precisa ser recriado aqui, na inicializacao
-    # do container, e nao no Dockerfile. "exec airflow standalone" retoma o
-    # fluxo normal do entrypoint da imagem apos o dbt deps.
-    command: >
-      bash -c "python -m dbt.cli.main deps --project-dir /opt/airflow/dbt --profiles-dir /opt/airflow/dbt && exec airflow standalone"
+    command: bash /opt/airflow/airflow/iniciar.sh
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
       AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/airflow/dags
-      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_USER:-admin}
-      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_PASSWORD:-admin}
+      # A DAG ja nasce ativa; pausada, o agendamento diario nunca comecaria.
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      # Banco e logs de tarefa no volume airflow_estado: recriar o container
+      # nao apaga o historico de execucoes nem o usuario.
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/estado/airflow.db
+      AIRFLOW__LOGGING__BASE_LOG_FOLDER: /opt/airflow/estado/logs
+      AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_PASSWORD:-admin}
       # target/ e logs/ do dbt ficam fora do volume dbt/: o cache de parse que o
       # dbt grava ao rodar no Windows guarda caminhos com barra invertida e
       # quebra o dbt do container quando os dois compartilham o mesmo target/.
@@ -24,6 +23,7 @@ services:
       - ./dbt:/opt/airflow/dbt
       - ./data:/opt/airflow/data
       - ./tests:/opt/airflow/tests
+      - airflow_estado:/opt/airflow/estado
     ports:
       - "8080:8080"
 
@@ -37,3 +37,6 @@ services:
       - "8501:8501"
     depends_on:
       - airflow
+
+volumes:
+  airflow_estado:

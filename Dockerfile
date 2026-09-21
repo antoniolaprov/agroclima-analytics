@@ -13,3 +13,7 @@ COPY requirements-airflow.txt /tmp/requirements-airflow.txt
 RUN pip install --no-cache-dir -r /tmp/requirements-airflow.txt
 
 ENV PYTHONPATH=/opt/airflow
+
+# Criado como usuario airflow para que o volume nomeado herde o dono na primeira
+# montagem; montado como root, o SQLite do Airflow nao conseguiria gravar.
+RUN mkdir -p /opt/airflow/estado

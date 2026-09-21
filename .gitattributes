@@ -1,0 +1,2 @@
+# Scripts rodam dentro do container Linux: com CRLF o bash falha na primeira linha.
+*.sh text eol=lf
