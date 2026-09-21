@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements-airflow.txt
 
 ENV PYTHONPATH=/opt/airflow
 
-# Criado como usuario airflow para que o volume nomeado herde o dono na primeira
-# montagem; montado como root, o SQLite do Airflow nao conseguiria gravar.
-RUN mkdir -p /opt/airflow/estado
+# Criado como usuario airflow e gravavel pelo grupo root, para que o volume
+# nomeado herde essas permissoes na primeira montagem: o container roda com
+# grupo 0 e, no Linux, com o UID do usuario do host.
+RUN mkdir -p /opt/airflow/estado && chmod g+rwx /opt/airflow/estado

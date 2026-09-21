@@ -1,6 +1,9 @@
 services:
   airflow:
     build: .
+    # No Linux, AIRFLOW_UID no .env deve ser o seu `id -u`: dbt/ e data/ sao
+    # montados do host e o container precisa escrever neles.
+    user: "${AIRFLOW_UID:-50000}:0"
     command: bash /opt/airflow/airflow/iniciar.sh
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
