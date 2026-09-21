@@ -30,16 +30,32 @@ def test_ingerir_usa_anos_do_config_por_padrao(monkeypatch):
     assert recebido["anos"] == list(config.ANOS_CLIMA)
 
 
-def test_rodar_dbt_propaga_falha(monkeypatch):
+def test_rodar_dbt_propaga_falha_com_o_motivo_dado_pelo_dbt(monkeypatch):
     def falso_run(*args, **kwargs):
         class R:
             returncode = 1
+            stdout = "Running with dbt=1.8.8\nFAIL 3 assert_algum_teste\nDone. PASS=40 ERROR=1\n"
         return R()
 
     monkeypatch.setattr(pipeline.subprocess, "run", falso_run)
 
-    with pytest.raises(RuntimeError, match="dbt build falhou"):
+    with pytest.raises(RuntimeError, match="dbt build falhou") as erro:
         pipeline.rodar_dbt()
+    assert "FAIL 3 assert_algum_teste" in str(erro.value)
+
+
+def test_rodar_dbt_leva_a_saida_do_dbt_para_o_log(monkeypatch, caplog):
+    def falso_run(*args, **kwargs):
+        class R:
+            returncode = 0
+            stdout = "Done. PASS=46 WARN=0 ERROR=0\n"
+        return R()
+
+    monkeypatch.setattr(pipeline.subprocess, "run", falso_run)
+
+    with caplog.at_level("INFO", logger=pipeline.log.name):
+        pipeline.rodar_dbt()
+    assert "Done. PASS=46 WARN=0 ERROR=0" in caplog.text
 
 
 def test_rodar_dbt_invoca_dbt_como_modulo_do_interpretador(monkeypatch):
@@ -50,6 +66,7 @@ def test_rodar_dbt_invoca_dbt_como_modulo_do_interpretador(monkeypatch):
 
         class R:
             returncode = 0
+            stdout = ""
         return R()
 
     monkeypatch.setattr(pipeline.subprocess, "run", falso_run)

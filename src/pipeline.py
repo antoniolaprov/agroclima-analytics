@@ -36,12 +36,21 @@ def rodar_dbt() -> None:
             str(DBT_DIR),
             "--profiles-dir",
             str(DBT_DIR),
+            "--no-use-colors",
         ],
         cwd=str(DBT_DIR),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
         check=False,
     )
+    # A saida do subprocesso nao chega sozinha ao log da tarefa no Airflow;
+    # sem repassa-la, uma falha do dbt aparece so como "dbt build falhou".
+    linhas = resultado.stdout.splitlines()
+    for linha in linhas:
+        log.info(linha)
     if resultado.returncode != 0:
-        raise RuntimeError("dbt build falhou")
+        raise RuntimeError("dbt build falhou:\n" + "\n".join(linhas[-20:]))
 
 
 def main(anos=None) -> dict:
