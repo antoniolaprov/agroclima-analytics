@@ -6,6 +6,11 @@ set -euo pipefail
 # aqui, na partida, e nao no build.
 python -m dbt.cli.main deps --project-dir /opt/airflow/dbt --profiles-dir /opt/airflow/dbt
 
+# Um pid antigo faz o gunicorn do webserver desistir achando que ja existe um
+# rodando. O arquivo sobrevive a um `docker compose stop && start`, que reusa o
+# mesmo container, e ai a interface web nao sobe.
+rm -f "${AIRFLOW_HOME:-/opt/airflow}"/*.pid
+
 airflow db migrate
 
 # O modo standalone so cria o usuario admin, com senha aleatoria, quando ele
