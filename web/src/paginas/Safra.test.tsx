@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import type { LinhaClimaSafra } from "@/src/lib/dados";
 import { climaSafraExemplo, metaExemplo, safraExemplo } from "@/src/teste/exemplos";
 import { Safra } from "./Safra";
 
@@ -54,5 +55,19 @@ describe("pagina de Safra", () => {
   it("mostra a correlacao com o tamanho da amostra", () => {
     render(<Safra safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaExemplo} />);
     expect(screen.getByText(/4 safras/)).toBeInTheDocument();
+  });
+
+  it("mantem a dispersao desenhada quando faltam pontos para a correlacao", () => {
+    const climaSafraDoisPontos: LinhaClimaSafra[] = [
+      { uf: "MT", cultura: "soja", ano: 2024, rendimento: 3109, precip_ciclo: 1066, temp_media_ciclo: 25.9, n_estacoes: 34 },
+      { uf: "RS", cultura: "soja", ano: 2024, rendimento: 2806, precip_ciclo: 1150, temp_media_ciclo: 21.4, n_estacoes: 43 },
+    ];
+    const { container } = render(
+      <Safra safra={safraExemplo} climaSafra={climaSafraDoisPontos} meta={metaExemplo} />,
+    );
+    const paragrafoCorrelacao = screen.getByText(/Correlação \(r\):/);
+    expect(paragrafoCorrelacao.querySelector("strong")).toHaveTextContent("-");
+    const pontos = container.querySelectorAll(".recharts-scatter-symbol");
+    expect(pontos.length).toBe(climaSafraDoisPontos.length);
   });
 });

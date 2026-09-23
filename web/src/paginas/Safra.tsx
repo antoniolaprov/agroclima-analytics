@@ -9,7 +9,7 @@ import { Linha } from "@/src/graficos/Linha";
 import { atribuir } from "@/src/lib/cores";
 import { correlacao } from "@/src/lib/correlacao";
 import type { LinhaClimaSafra, LinhaSafra, Meta } from "@/src/lib/dados";
-import { cultura as nomeCultura, numero } from "@/src/lib/formato";
+import { cultura as nomeCultura, inteiro, numero } from "@/src/lib/formato";
 
 const EIXOS = {
   precip_ciclo: "Chuva acumulada no ciclo (mm)",
@@ -39,7 +39,9 @@ export function Safra({
   const [eixo, setEixo] = useState<Eixo>("precip_ciclo");
   const { filtros, definir } = useFiltros({
     ufs: ["MT", "PR", "RS"],
-    culturas: meta.culturas.slice(0, 1),
+    // soja e a cultura com serie cheia nos tres estados padrao; abrir em
+    // meta.culturas[0] (cafe, por ordem alfabetica) deixa RS e PR quase vazios.
+    culturas: meta.culturas.includes("soja") ? ["soja"] : meta.culturas.slice(0, 1),
     anoIni: meta.anos_clima[0],
     anoFim: meta.anos_safra[meta.anos_safra.length - 1],
   });
@@ -144,9 +146,10 @@ export function Safra({
                   Correlação (r): <strong>{r === null ? "-" : numero(r, 2)}</strong>
                 </p>
                 <p className="text-sm text-stone-500">
-                  {totalPontos} safras de {nomeCultura(cultura).toLocaleLowerCase("pt-BR")} nos estados selecionados.
-                  Cada ponto é um estado num ano; com poucos anos por estado, a correlação descreve a amostra e não
-                  prova causa.
+                  {inteiro(totalPontos)} safras de {nomeCultura(cultura).toLocaleLowerCase("pt-BR")} nos estados
+                  selecionados. Cada ponto é um estado num ano; com poucos anos por estado, a correlação descreve a
+                  amostra e não prova causa. Os estados entram num único conjunto de pontos, então boa parte de um r
+                  alto pode vir da diferença entre estados, e não da variação dentro de cada um.
                 </p>
               </>
             )}
