@@ -81,6 +81,11 @@ export function Home({
   const rSelecao = correlacao(pares(daSelecao));
   const rPais = correlacao(pares(doPais));
   const nomeSelecao = listaEstados(estadosDestaque);
+  // A direcao da mudanca depende da cultura: na soja a relacao desaba fora da
+  // selecao, no milho ela e mais forte no pais. Comparar as forcas evita que a
+  // frase afirme uma queda que nao aconteceu.
+  const enfraqueceNoPais =
+    rSelecao !== null && rPais !== null && Math.abs(rSelecao) > Math.abs(rPais);
   const gruposPais = [
     { nome: "Todos os estados", cor: COR_RESTANTE, pontos: pontos(doPais) },
     { nome: nomeSelecao, cor: "#2a78d6", pontos: pontos(daSelecao) },
@@ -160,9 +165,12 @@ export function Home({
             <p>
               Com {nomeSelecao}, a correlação entre chuva do ciclo e rendimento é de{" "}
               <strong>{rSelecao === null ? "-" : numero(rSelecao, 2)}</strong>. Com todos os estados que
-              plantam {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, cai para{" "}
-              <strong>{rPais === null ? "-" : numero(rPais, 2)}</strong>. Secas fortes aparecem nos
-              dados, mas a chuva total do ciclo sozinha não explica o rendimento no país: irrigação,
+              plantam {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, vai para{" "}
+              <strong>{rPais === null ? "-" : numero(rPais, 2)}</strong>:{" "}
+              {enfraqueceNoPais
+                ? "a relação enfraquece fora da seleção."
+                : "a relação não enfraquece fora da seleção."}{" "}
+              Secas fortes aparecem nos dados, mas a chuva total do ciclo sozinha não explica o rendimento no país: irrigação,
               distribuição da chuva ao longo do ciclo e manejo pesam, e o projeto não mede essas
               variáveis.
             </p>

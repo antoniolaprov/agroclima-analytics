@@ -31,6 +31,39 @@ describe("home", () => {
     await screen.findByRole("img");
   });
 
+  it("nao afirma queda quando a relacao e mais forte no pais do que na selecao", async () => {
+    // MT e PR (da selecao padrao) com relacao fraca; os demais estados com
+    // relacao forte. A frase precisa acompanhar o dado, nao repetir o caso da
+    // soja, onde a correlacao desaba fora da selecao.
+    const cruzamento: LinhaClimaSafra[] = [
+      { uf: "MT", cultura: "soja", ano: 2022, rendimento: 3000, precip_ciclo: 800, temp_media_ciclo: 25, n_estacoes: 3 },
+      { uf: "MT", cultura: "soja", ano: 2023, rendimento: 2990, precip_ciclo: 1200, temp_media_ciclo: 25, n_estacoes: 3 },
+      { uf: "PR", cultura: "soja", ano: 2022, rendimento: 3010, precip_ciclo: 900, temp_media_ciclo: 22, n_estacoes: 3 },
+      { uf: "PR", cultura: "soja", ano: 2023, rendimento: 3005, precip_ciclo: 1100, temp_media_ciclo: 22, n_estacoes: 3 },
+      { uf: "GO", cultura: "soja", ano: 2022, rendimento: 1000, precip_ciclo: 400, temp_media_ciclo: 24, n_estacoes: 3 },
+      { uf: "GO", cultura: "soja", ano: 2023, rendimento: 2000, precip_ciclo: 800, temp_media_ciclo: 24, n_estacoes: 3 },
+      { uf: "BA", cultura: "soja", ano: 2022, rendimento: 3000, precip_ciclo: 1200, temp_media_ciclo: 26, n_estacoes: 3 },
+      { uf: "BA", cultura: "soja", ano: 2023, rendimento: 4000, precip_ciclo: 1600, temp_media_ciclo: 26, n_estacoes: 3 },
+    ];
+    render(<Home safra={safraExemplo} climaSafra={cruzamento} meta={metaExemplo} />);
+    expect(screen.getByText(/não enfraquece fora da seleção/)).toBeInTheDocument();
+    await screen.findByRole("img");
+  });
+
+  it("afirma queda quando a relacao da selecao e a mais forte", async () => {
+    const cruzamento: LinhaClimaSafra[] = [
+      { uf: "MT", cultura: "soja", ano: 2022, rendimento: 1000, precip_ciclo: 400, temp_media_ciclo: 25, n_estacoes: 3 },
+      { uf: "MT", cultura: "soja", ano: 2023, rendimento: 2000, precip_ciclo: 800, temp_media_ciclo: 25, n_estacoes: 3 },
+      { uf: "PR", cultura: "soja", ano: 2022, rendimento: 3000, precip_ciclo: 1200, temp_media_ciclo: 22, n_estacoes: 3 },
+      { uf: "PR", cultura: "soja", ano: 2023, rendimento: 4000, precip_ciclo: 1600, temp_media_ciclo: 22, n_estacoes: 3 },
+      { uf: "GO", cultura: "soja", ano: 2022, rendimento: 4000, precip_ciclo: 400, temp_media_ciclo: 24, n_estacoes: 3 },
+      { uf: "GO", cultura: "soja", ano: 2023, rendimento: 1000, precip_ciclo: 1600, temp_media_ciclo: 24, n_estacoes: 3 },
+    ];
+    render(<Home safra={safraExemplo} climaSafra={cruzamento} meta={metaExemplo} />);
+    expect(screen.getByText(/relação enfraquece fora da seleção/)).toBeInTheDocument();
+    await screen.findByRole("img");
+  });
+
   it("mostra a correlacao do pais inteiro junto com a da selecao", async () => {
     render(<Home safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaExemplo} />);
     // "Todos os estados" tambem aparece na legenda do grafico; a frase busca o
