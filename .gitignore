@@ -10,3 +10,6 @@ dbt/dbt_packages/
 dbt/.user.yml
 .DS_Store
 .worktrees/
+node_modules/
+.next/
+web/out/
