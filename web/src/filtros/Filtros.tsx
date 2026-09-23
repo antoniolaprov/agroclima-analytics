@@ -34,6 +34,7 @@ export function Filtros({
               type="button"
               onClick={() => alternarUf(uf)}
               disabled={desabilitada}
+              title={desabilitada ? `Limite de ${MAX_UFS} estados atingido, desmarque um para trocar` : undefined}
               aria-pressed={ativa}
               className={`rounded-full border px-3 py-1 text-sm ${
                 ativa
@@ -77,7 +78,10 @@ export function Filtros({
         <select
           className="rounded border border-stone-300 px-2 py-1"
           value={filtros.anoIni}
-          onChange={(evento) => definir({ anoIni: Number(evento.target.value) })}
+          onChange={(evento) => {
+            const anoIni = Number(evento.target.value);
+            definir(anoIni > filtros.anoFim ? { anoIni, anoFim: anoIni } : { anoIni });
+          }}
           aria-label="Ano inicial"
         >
           {anos.map((ano) => <option key={ano} value={ano}>{ano}</option>)}
@@ -86,7 +90,10 @@ export function Filtros({
         <select
           className="rounded border border-stone-300 px-2 py-1"
           value={filtros.anoFim}
-          onChange={(evento) => definir({ anoFim: Number(evento.target.value) })}
+          onChange={(evento) => {
+            const anoFim = Number(evento.target.value);
+            definir(anoFim < filtros.anoIni ? { anoFim, anoIni: anoFim } : { anoFim });
+          }}
           aria-label="Ano final"
         >
           {anos.map((ano) => <option key={ano} value={ano}>{ano}</option>)}

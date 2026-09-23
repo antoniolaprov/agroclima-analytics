@@ -8,10 +8,8 @@ export type Filtros = { ufs: string[]; culturas: string[]; anoIni: number; anoFi
 
 export const MAX_UFS = PALETA.length;
 
-function lista(valor: string | null): string[] | null {
-  if (!valor) return null;
-  const itens = valor.split(",").map((item) => item.trim()).filter(Boolean);
-  return itens.length ? itens : null;
+function lista(valor: string): string[] {
+  return valor.split(",").map((item) => item.trim()).filter(Boolean);
 }
 
 // So aceita numero finito; um parametro invalido ou truncado na URL
@@ -22,11 +20,14 @@ function anoValido(valor: string | null, padrao: number): number {
   return Number.isFinite(numero) ? numero : padrao;
 }
 
+// Parametro ausente cai no padrao; parametro presente e vazio e uma escolha
+// do leitor (desmarcou tudo) e deve continuar vazio.
 export function lerFiltros(parametros: URLSearchParams, padrao: Filtros): Filtros {
-  const ufs = lista(parametros.get("ufs")) ?? padrao.ufs;
+  const ufs = parametros.has("ufs") ? lista(parametros.get("ufs") ?? "") : padrao.ufs;
+  const culturas = parametros.has("culturas") ? lista(parametros.get("culturas") ?? "") : padrao.culturas;
   return {
     ufs: ufs.slice(0, MAX_UFS),
-    culturas: lista(parametros.get("culturas")) ?? padrao.culturas,
+    culturas,
     anoIni: anoValido(parametros.get("ano_ini"), padrao.anoIni),
     anoFim: anoValido(parametros.get("ano_fim"), padrao.anoFim),
   };
@@ -47,7 +48,15 @@ export function useFiltros(padrao: Filtros) {
   const rota = useRouter();
   const caminho = usePathname();
 
-  const filtros = useMemo(() => lerFiltros(new URLSearchParams(parametros.toString()), padrao), [parametros, padrao]);
+  // padrao pode chegar como literal novo a cada render; memoizar pelo
+  // conteudo (nao pela referencia) evita recomputo e efeitos em laco nos
+  // consumidores que dependem de filtros.
+  const chavePadrao = JSON.stringify(padrao);
+  const filtros = useMemo(
+    () => lerFiltros(new URLSearchParams(parametros.toString()), padrao),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chavePadrao ja representa o conteudo de padrao
+    [parametros, chavePadrao],
+  );
 
   const definir = useCallback(
     (parcial: Partial<Filtros>) => {

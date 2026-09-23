@@ -31,4 +31,18 @@ describe("filtros na URL", () => {
     expect(filtros.anoIni).toBe(2022);
     expect(filtros.anoFim).toBe(2025);
   });
+
+  it("mantem selecao vazia quando o parametro esta presente e vazio", () => {
+    const padrao = { ufs: ["MT", "PR", "RS"], culturas: ["soja"], anoIni: 2022, anoFim: 2026 };
+    const filtros = lerFiltros(new URLSearchParams("ufs="), padrao);
+    expect(filtros.ufs).toEqual([]);
+  });
+
+  it("faz o percurso de ida e volta preservando listas vazias", () => {
+    const padrao = { ufs: ["MT", "PR", "RS"], culturas: ["soja"], anoIni: 2022, anoFim: 2026 };
+    const original = { ufs: [], culturas: [], anoIni: 2023, anoFim: 2025 };
+    const query = montarQuery(original);
+    const filtros = lerFiltros(new URLSearchParams(query), padrao);
+    expect(filtros).toEqual(original);
+  });
 });
