@@ -23,9 +23,11 @@ services:
     volumes:
       - ./airflow:/opt/airflow/airflow
       - ./src:/opt/airflow/src
+      - ./scripts:/opt/airflow/scripts
       - ./dbt:/opt/airflow/dbt
       - ./data:/opt/airflow/data
       - ./tests:/opt/airflow/tests
+      - ./web/public/data:/opt/airflow/web/public/data
       - airflow_estado:/opt/airflow/estado
     ports:
       - "8080:8080"

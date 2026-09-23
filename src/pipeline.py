@@ -2,6 +2,7 @@ import logging
 import subprocess
 import sys
 
+from scripts import exportar_web as _exportar_web
 from src import config
 from src.ingestion import inmet_api, sidra_api
 
@@ -53,10 +54,15 @@ def rodar_dbt() -> None:
         raise RuntimeError("dbt build falhou:\n" + "\n".join(linhas[-20:]))
 
 
+def exportar_web() -> dict:
+    return _exportar_web.exportar()
+
+
 def main(anos=None) -> dict:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     resumo = ingerir(anos)
     rodar_dbt()
+    resumo["web"] = exportar_web()
     log.info("pipeline concluido: %s", resumo)
     return resumo
 

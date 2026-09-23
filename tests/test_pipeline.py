@@ -79,3 +79,14 @@ def test_rodar_dbt_invoca_dbt_como_modulo_do_interpretador(monkeypatch):
     assert cmd[1:3] == ["-m", "dbt.cli.main"]
     assert cmd[0] != "dbt"
     assert "build" in cmd
+
+
+def test_main_exporta_o_site_depois_do_dbt(monkeypatch):
+    ordem = []
+    monkeypatch.setattr(pipeline, "ingerir", lambda anos=None: ordem.append("ingerir") or {})
+    monkeypatch.setattr(pipeline, "rodar_dbt", lambda: ordem.append("dbt"))
+    monkeypatch.setattr(pipeline, "exportar_web", lambda: ordem.append("web") or {})
+
+    pipeline.main()
+
+    assert ordem == ["ingerir", "dbt", "web"]

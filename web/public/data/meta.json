@@ -1,0 +1,39 @@
+{
+  "gerado_em": "2026-09-23T01:04:13+00:00",
+  "ufs": [
+    "DF",
+    "MG",
+    "SP"
+  ],
+  "culturas": [
+    "cafe",
+    "cana",
+    "milho",
+    "soja"
+  ],
+  "anos": [
+    2022,
+    2023,
+    2024,
+    2026
+  ],
+  "linhas_por_arquivo": {
+    "clima": 110,
+    "safra": 35,
+    "clima_safra": 20
+  },
+  "fontes": [
+    {
+      "nome": "INMET - dados historicos",
+      "url": "https://portal.inmet.gov.br/dadoshistoricos"
+    },
+    {
+      "nome": "IBGE - agregados (SIDRA)",
+      "url": "https://servicodados.ibge.gov.br/api/docs/agregados?versao=3"
+    },
+    {
+      "nome": "IBGE - malhas",
+      "url": "https://servicodados.ibge.gov.br/api/docs/malhas?versao=3"
+    }
+  ]
+}
