@@ -11,8 +11,14 @@ export const PALETA = [
   "#e34948",
 ];
 
-export const VERDE_MAPA: [string, string] = ["#eaf4ea", "#14532d"];
+// Extremos da escala continua Greens do ColorBrewer, a mesma que o Plotly usa
+// no mapa do dashboard Streamlit (dashboard/views/overview.py,
+// color_continuous_scale="Greens"), para os dois mapas lerem igual.
+export const VERDE_MAPA: [string, string] = ["#f7fcf5", "#00441b"];
 
+// atribuidas tem um unico dono por pagina (um useRef por pagina): nao
+// compartilhe o mesmo mapa entre duas chamadas no mesmo render, porque a
+// funcao muta o argumento e a ultima chamada sobrescreve a anterior.
 export function atribuir(
   ufs: string[],
   atribuidas: Record<string, string>,
