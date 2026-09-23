@@ -34,7 +34,17 @@ export function Barras({
         {series.length > 1 ? <Legend /> : null}
         {linhaZero ? <ReferenceLine y={0} stroke="#9a9a96" /> : null}
         {series.map((serie) => (
-          <Bar key={serie.chave} dataKey={serie.chave} name={serie.nome} fill={serie.cor} radius={[4, 4, 0, 0]} />
+          <Bar
+            key={serie.chave}
+            dataKey={serie.chave}
+            name={serie.nome}
+            fill={serie.cor}
+            radius={[4, 4, 0, 0]}
+            // Painel de dados, nao uma peca de apresentacao: a animacao de entrada
+            // nao agrega nada e, ligada, um grafico sem nenhuma barra ainda passa
+            // no teste (o retangulo so existe apos um frame de animacao).
+            isAnimationActive={false}
+          />
         ))}
       </BarChart>
     </ResponsiveContainer>

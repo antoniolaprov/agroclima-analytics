@@ -34,7 +34,16 @@ export function Dispersao({
         <Tooltip formatter={(valor) => numero(valor as number, 0)} cursor={{ strokeDasharray: "3 3" }} />
         {grupos.length > 1 ? <Legend /> : null}
         {grupos.map((grupo) => (
-          <Scatter key={grupo.nome} name={grupo.nome} data={grupo.pontos} fill={grupo.cor} />
+          <Scatter
+            key={grupo.nome}
+            name={grupo.nome}
+            data={grupo.pontos}
+            fill={grupo.cor}
+            // Painel de dados, nao uma peca de apresentacao: a animacao de entrada
+            // nao agrega nada e, ligada, um grafico sem nenhum ponto ainda passa
+            // no teste (o ponto so existe apos um frame de animacao).
+            isAnimationActive={false}
+          />
         ))}
       </ScatterChart>
     </ResponsiveContainer>

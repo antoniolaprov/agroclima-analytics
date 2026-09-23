@@ -44,6 +44,10 @@ export function Linha({
             strokeDasharray={serie.tracejada ? "4 4" : undefined}
             dot={false}
             connectNulls={false}
+            // Painel de dados, nao uma peca de apresentacao: a animacao de entrada
+            // nao agrega nada e, ligada, um grafico sem nenhuma marca ainda passa
+            // no teste (a curva so existe apos um frame de animacao).
+            isAnimationActive={false}
           />
         ))}
       </LineChart>
