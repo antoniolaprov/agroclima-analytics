@@ -6,7 +6,7 @@ import { useFiltros } from "@/src/filtros/useFiltros";
 import { Linha } from "@/src/graficos/Linha";
 import { atribuir } from "@/src/lib/cores";
 import type { LinhaClima, Meta } from "@/src/lib/dados";
-import { numero } from "@/src/lib/formato";
+import { inteiro, numero } from "@/src/lib/formato";
 
 const CHAVE_MES = (linha: LinhaClima) => `${linha.ano}-${String(linha.mes).padStart(2, "0")}`;
 
@@ -81,11 +81,11 @@ export function Clima({ linhas, meta }: { linhas: LinhaClima[]; meta: Meta }) {
 
           <section>
             <h2 className="font-serif text-2xl">Tabela</h2>
-            <p className="text-sm text-stone-500">
-              A coluna Estações mostra quantas estações contribuíram para cada mês.
-            </p>
             <div className="mt-4 max-h-96 overflow-auto rounded-lg border border-stone-200">
               <table className="w-full text-sm">
+                <caption className="caption-top px-3 py-2 text-left text-sm text-stone-500">
+                  A coluna Estações mostra quantas estações contribuíram para cada mês.
+                </caption>
                 <thead className="sticky top-0 bg-stone-50 text-left text-stone-600">
                   <tr>
                     <th className="px-3 py-2">UF</th>
@@ -104,7 +104,7 @@ export function Clima({ linhas, meta }: { linhas: LinhaClima[]; meta: Meta }) {
                       <td className="px-3 py-1.5">{numero(linha.temp_media, 1)}</td>
                       <td className="px-3 py-1.5">{numero(linha.precipitacao, 0)}</td>
                       <td className="px-3 py-1.5">{numero(linha.dias_sem_chuva, 0)}</td>
-                      <td className="px-3 py-1.5">{linha.n_estacoes}</td>
+                      <td className="px-3 py-1.5">{inteiro(linha.n_estacoes)}</td>
                     </tr>
                   ))}
                 </tbody>
