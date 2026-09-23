@@ -63,7 +63,7 @@ export function MapaUF({
           : rotulo}
       </figcaption>
       <div className="mt-2 flex items-center gap-2 text-xs text-stone-500">
-        <span>0</span>
+        <span>{numero(0, casas)}</span>
         <div
           className="h-2 w-40 rounded"
           style={{ background: `linear-gradient(to right, ${escalaVerde(0, 1)}, ${escalaVerde(1, 1)})` }}
