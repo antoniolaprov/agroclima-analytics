@@ -1,3 +1,11 @@
+import { Suspense } from "react";
+import { Safra } from "@/src/paginas/Safra";
+import { carregarClimaSafra, carregarMeta, carregarSafra } from "@/src/lib/dados";
+
 export default function PaginaSafra() {
-  return <h1 className="mx-auto max-w-6xl px-6 py-16 font-serif text-4xl">Safra</h1>;
+  return (
+    <Suspense>
+      <Safra safra={carregarSafra()} climaSafra={carregarClimaSafra()} meta={carregarMeta()} />
+    </Suspense>
+  );
 }
