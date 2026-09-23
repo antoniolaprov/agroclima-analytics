@@ -10,7 +10,7 @@ const sans = Inter({ subsets: ["latin"], variable: "--fonte-sans" });
 
 export const metadata: Metadata = {
   title: "AgroClima Analytics",
-  description: "Como chuva e temperatura se relacionam com a produtividade agricola, por estado.",
+  description: "Como chuva e temperatura se relacionam com a produtividade agrícola, por estado.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

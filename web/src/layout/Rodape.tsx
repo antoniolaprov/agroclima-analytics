@@ -10,7 +10,7 @@ export function Rodape({ meta }: { meta: Meta }) {
     <footer className="mt-24 border-t border-stone-200 bg-white/60">
       <div className="mx-auto max-w-6xl px-6 py-10 text-sm text-stone-600">
         <p>
-          Clima de {climaInicio} a {climaFim}, safra de {safraInicio} a {safraFim}, extraidos em {gerado}.
+          Clima de {climaInicio} a {climaFim}, safra de {safraInicio} a {safraFim}, extraídos em {gerado}.
         </p>
         <ul className="mt-3 flex flex-wrap gap-4">
           {meta.fontes.map((fonte) => (

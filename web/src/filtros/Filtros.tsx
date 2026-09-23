@@ -1,5 +1,6 @@
 "use client";
 
+import { cultura as nomeCultura } from "@/src/lib/formato";
 import { MAX_UFS, type Filtros as TipoFiltros } from "./useFiltros";
 
 export function Filtros({
@@ -23,7 +24,7 @@ export function Filtros({
 
   return (
     <div className="rounded-xl border border-stone-200 bg-white/70 p-4">
-      <p className="text-xs uppercase tracking-wide text-stone-500">Estados (ate {MAX_UFS})</p>
+      <p className="text-xs uppercase tracking-wide text-stone-500">Estados (até {MAX_UFS})</p>
       <div className="mt-2 flex flex-wrap gap-2">
         {ufsDisponiveis.map((uf) => {
           const ativa = filtros.ufs.includes(uf);
@@ -60,20 +61,20 @@ export function Filtros({
                 type="button"
                 onClick={() => definir({ culturas: [cultura] })}
                 aria-pressed={filtros.culturas[0] === cultura}
-                className={`rounded-full border px-3 py-1 text-sm capitalize ${
+                className={`rounded-full border px-3 py-1 text-sm ${
                   filtros.culturas[0] === cultura
                     ? "border-stone-900 bg-stone-900 text-white"
                     : "border-stone-300 text-stone-600 hover:border-stone-500"
                 }`}
               >
-                {cultura}
+                {nomeCultura(cultura)}
               </button>
             ))}
           </div>
         </>
       ) : null}
 
-      <p className="mt-4 text-xs uppercase tracking-wide text-stone-500">Periodo</p>
+      <p className="mt-4 text-xs uppercase tracking-wide text-stone-500">Período</p>
       <div className="mt-2 flex items-center gap-2 text-sm">
         <select
           className="rounded border border-stone-300 px-2 py-1"
@@ -86,7 +87,7 @@ export function Filtros({
         >
           {anos.map((ano) => <option key={ano} value={ano}>{ano}</option>)}
         </select>
-        <span className="text-stone-400">ate</span>
+        <span className="text-stone-400">até</span>
         <select
           className="rounded border border-stone-300 px-2 py-1"
           value={filtros.anoFim}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const PAGINAS = [
-  { href: "/", texto: "Inicio" },
+  { href: "/", texto: "Início" },
   { href: "/clima", texto: "Clima" },
   { href: "/safra", texto: "Safra" },
 ];
