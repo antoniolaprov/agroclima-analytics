@@ -7,7 +7,7 @@ import { Secao } from "@/src/layout/Secao";
 import { correlacao } from "@/src/lib/correlacao";
 import type { LinhaClimaSafra, LinhaSafra, Meta } from "@/src/lib/dados";
 import { producaoPorCodigoUf, safrasMaisSecas, ultimoAno } from "@/src/lib/destaques";
-import { cultura as nomeCultura, inteiro, numero } from "@/src/lib/formato";
+import { cultura as nomeCultura, inteiro, numero, porExtenso } from "@/src/lib/formato";
 
 const DESTAQUE = ["MT", "PR", "RS"];
 const COR_RESTANTE = "#a8a29e";
@@ -17,6 +17,13 @@ function pares(linhas: LinhaClimaSafra[]): [number, number][] {
   return linhas
     .filter((linha) => linha.precip_ciclo !== null && linha.rendimento !== null)
     .map((linha) => [linha.precip_ciclo as number, linha.rendimento as number]);
+}
+
+// Junta nomes do jeito que se fala em portugues, com "e" antes do ultimo;
+// mantem a frase gramatical com um, dois ou tres nomes.
+function listaEstados(estados: string[]): string {
+  if (estados.length <= 1) return estados.join("");
+  return `${estados.slice(0, -1).join(", ")} e ${estados[estados.length - 1]}`;
 }
 
 function pontos(linhas: LinhaClimaSafra[]): { x: number; y: number }[] {
@@ -63,13 +70,20 @@ export function Home({
     { nome: "Safras mais secas", cor: COR_SECA, pontos: pontos(rsSecas) },
   ].filter((grupo) => grupo.pontos.length > 0);
 
-  const daSelecao = climaSafra.filter((linha) => linha.cultura === cultura && DESTAQUE.includes(linha.uf));
   const doPais = climaSafra.filter((linha) => linha.cultura === cultura);
+  // So entra na frase e na legenda o estado de DESTAQUE que realmente tem
+  // pelo menos um ponto cruzado para a cultura escolhida; nomear um estado
+  // sem dado venderia uma amostra que ele nao integra.
+  const estadosDestaque = DESTAQUE.filter((uf) =>
+    doPais.some((linha) => linha.uf === uf && linha.precip_ciclo !== null && linha.rendimento !== null),
+  );
+  const daSelecao = doPais.filter((linha) => estadosDestaque.includes(linha.uf));
   const rSelecao = correlacao(pares(daSelecao));
   const rPais = correlacao(pares(doPais));
+  const nomeSelecao = listaEstados(estadosDestaque);
   const gruposPais = [
     { nome: "Todos os estados", cor: COR_RESTANTE, pontos: pontos(doPais) },
-    { nome: DESTAQUE.join(", "), cor: "#2a78d6", pontos: pontos(daSelecao) },
+    { nome: nomeSelecao, cor: "#2a78d6", pontos: pontos(daSelecao) },
   ].filter((grupo) => grupo.pontos.length > 0);
 
   return (
@@ -90,8 +104,8 @@ export function Home({
           lider ? (
             <p>
               Em {ano}, o país colheu {inteiro(producaoTotal)} toneladas de{" "}
-              {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, somando os {comProducao.length} de{" "}
-              {doAno.length} estados com produção registrada nesse ano — os demais não entram na
+              {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, somando os {inteiro(comProducao.length)} de{" "}
+              {inteiro(doAno.length)} estados com produção registrada nesse ano — os demais não entram na
               soma. {lider.uf} respondeu por {inteiro(lider.producao)} delas, com rendimento de{" "}
               {inteiro(lider.rendimento)} kg/ha.
             </p>
@@ -121,9 +135,9 @@ export function Home({
         descricao={
           rsSecas.length > 0 ? (
             <p>
-              O Rio Grande do Sul entra nesta amostra com apenas {rsCruzamento.length} safras de{" "}
+              O Rio Grande do Sul entra nesta amostra com apenas {porExtenso(rsCruzamento.length)} safras de{" "}
               {nomeCultura(cultura).toLocaleLowerCase("pt-BR")} cruzadas com o clima — poucos pontos,
-              mas o padrão aparece: as {rsSecas.length} mais secas do ciclo,{" "}
+              mas o padrão aparece: as {porExtenso(rsSecas.length)} mais secas do ciclo,{" "}
               {rsSecas.map((linha) => `${linha.ano} (${inteiro(linha.precip_ciclo)} mm)`).join(" e ")},
               também tiveram o pior rendimento,{" "}
               {rsSecas.map((linha) => `${inteiro(linha.rendimento)} kg/ha`).join(" e ")}.
@@ -142,15 +156,28 @@ export function Home({
       <Secao
         titulo="Mas não é só chuva"
         descricao={
-          <p>
-            Com {DESTAQUE.join(", ")}, a correlação entre chuva do ciclo e rendimento é de{" "}
-            <strong>{rSelecao === null ? "-" : numero(rSelecao, 2)}</strong>. Com todos os estados que
-            plantam {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, cai para{" "}
-            <strong>{rPais === null ? "-" : numero(rPais, 2)}</strong>. Secas fortes aparecem nos
-            dados, mas a chuva total do ciclo sozinha não explica o rendimento no país: irrigação,
-            distribuição da chuva ao longo do ciclo e manejo pesam, e o projeto não mede essas
-            variáveis.
-          </p>
+          estadosDestaque.length > 0 ? (
+            <p>
+              Com {nomeSelecao}, a correlação entre chuva do ciclo e rendimento é de{" "}
+              <strong>{rSelecao === null ? "-" : numero(rSelecao, 2)}</strong>. Com todos os estados que
+              plantam {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, cai para{" "}
+              <strong>{rPais === null ? "-" : numero(rPais, 2)}</strong>. Secas fortes aparecem nos
+              dados, mas a chuva total do ciclo sozinha não explica o rendimento no país: irrigação,
+              distribuição da chuva ao longo do ciclo e manejo pesam, e o projeto não mede essas
+              variáveis.
+            </p>
+          ) : (
+            <p>
+              Nenhum dos estados da seleção padrão tem safras de{" "}
+              {nomeCultura(cultura).toLocaleLowerCase("pt-BR")} cruzadas com o clima. Com todos os
+              estados que plantam {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, a correlação
+              entre chuva do ciclo e rendimento é de{" "}
+              <strong>{rPais === null ? "-" : numero(rPais, 2)}</strong>. Secas fortes aparecem nos
+              dados, mas a chuva total do ciclo sozinha não explica o rendimento no país: irrigação,
+              distribuição da chuva ao longo do ciclo e manejo pesam, e o projeto não mede essas
+              variáveis.
+            </p>
+          )
         }
       >
         <Dispersao grupos={gruposPais} rotuloX="Chuva acumulada no ciclo (mm)" rotuloY="Rendimento (kg/ha)" />
@@ -174,9 +201,15 @@ export function Home({
             </li>
           ))}
         </ol>
-        <p className="mt-6 text-sm">
+        <p className="mt-6 flex gap-4 text-sm">
           <a className="underline" href="https://github.com/antoniolaprov/agroclima-analytics">
             Código no GitHub
+          </a>
+          <a
+            className="underline"
+            href="https://github.com/antoniolaprov/agroclima-analytics/blob/main/docs/design.md"
+          >
+            Documento de design
           </a>
         </p>
       </Secao>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inteiro, numero } from "./formato";
+import { inteiro, numero, porExtenso } from "./formato";
 
 describe("numero", () => {
   it("usa o formato brasileiro", () => {
@@ -13,5 +13,19 @@ describe("numero", () => {
     expect(numero(null)).toBe("-");
     expect(numero(Number.NaN)).toBe("-");
     expect(inteiro(null)).toBe("-");
+  });
+});
+
+describe("porExtenso", () => {
+  it("escreve de um a dez por extenso", () => {
+    expect(porExtenso(1)).toBe("um");
+    expect(porExtenso(2)).toBe("dois");
+    expect(porExtenso(3)).toBe("três");
+    expect(porExtenso(10)).toBe("dez");
+  });
+
+  it("cai no algarismo acima de dez", () => {
+    expect(porExtenso(11)).toBe("11");
+    expect(porExtenso(24)).toBe("24");
   });
 });

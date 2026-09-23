@@ -60,7 +60,7 @@ describe("home", () => {
     render(<Home safra={safraExemplo} climaSafra={climaSafraRs} meta={metaExemplo} />);
     await screen.findByRole("img");
 
-    expect(screen.getByText(/3 safras/)).toBeInTheDocument();
+    expect(screen.getByText(/três safras/)).toBeInTheDocument();
 
     const secaoRs = screen.getByText(/Quando falta chuva/).closest("section");
     expect(secaoRs).not.toBeNull();
@@ -74,5 +74,31 @@ describe("home", () => {
     const restantes = secaoRs!.querySelectorAll('.recharts-scatter-symbol .recharts-symbols[fill="#a8a29e"]');
     expect(secos.length).toBe(2);
     expect(restantes.length).toBe(1);
+  });
+
+  it("no bloco da correlacao, nao nomeia um estado da selecao sem cruzamento para a cultura", async () => {
+    // PR nao tem nenhuma linha para "cafe" nesta amostra; so MT e RS
+    // contribuem pontos, entao so eles podem aparecer na frase da selecao.
+    const climaSafraSemPr: LinhaClimaSafra[] = [
+      { uf: "MT", cultura: "cafe", ano: 2023, rendimento: 1800, precip_ciclo: 900, temp_media_ciclo: 22.1, n_estacoes: 20 },
+      { uf: "MT", cultura: "cafe", ano: 2024, rendimento: 1900, precip_ciclo: 950, temp_media_ciclo: 22.4, n_estacoes: 20 },
+      { uf: "MT", cultura: "cafe", ano: 2025, rendimento: 2000, precip_ciclo: 1000, temp_media_ciclo: 22.0, n_estacoes: 20 },
+      { uf: "RS", cultura: "cafe", ano: 2023, rendimento: 1500, precip_ciclo: 800, temp_media_ciclo: 18.5, n_estacoes: 15 },
+      { uf: "RS", cultura: "cafe", ano: 2024, rendimento: 1600, precip_ciclo: 850, temp_media_ciclo: 18.9, n_estacoes: 15 },
+      { uf: "RS", cultura: "cafe", ano: 2025, rendimento: 1700, precip_ciclo: 900, temp_media_ciclo: 18.2, n_estacoes: 15 },
+    ];
+    render(
+      <Home
+        safra={safraExemplo}
+        climaSafra={climaSafraSemPr}
+        meta={{ ...metaExemplo, culturas: ["cafe"] }}
+      />,
+    );
+    await screen.findByRole("img");
+
+    const secaoCorrelacao = screen.getByText(/não é só chuva/i).closest("section");
+    expect(secaoCorrelacao).not.toBeNull();
+    expect(secaoCorrelacao).toHaveTextContent(/Com MT e RS,/);
+    expect(secaoCorrelacao!.textContent).not.toMatch(/\bPR\b/);
   });
 });

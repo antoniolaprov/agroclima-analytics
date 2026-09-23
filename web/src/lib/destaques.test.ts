@@ -32,4 +32,23 @@ describe("destaques da home", () => {
     const secas = safrasMaisSecas(linhas, 2);
     expect(secas.map((linha) => linha.ano)).toEqual([2024]);
   });
+
+  it("devolve o que tem quando ha menos linhas do que o n pedido", () => {
+    const linhas: LinhaClimaSafra[] = [
+      { uf: "RS", cultura: "soja", ano: 2023, rendimento: 1912, precip_ciclo: 540, temp_media_ciclo: 21.9, n_estacoes: 43 },
+    ];
+    const secas = safrasMaisSecas(linhas, 2);
+    expect(secas.map((linha) => linha.ano)).toEqual([2023]);
+  });
+
+  it("em empate de chuva, devolve resultado estavel e do tamanho certo", () => {
+    const linhas: LinhaClimaSafra[] = [
+      { uf: "RS", cultura: "soja", ano: 2022, rendimento: 1800, precip_ciclo: 700, temp_media_ciclo: 21.5, n_estacoes: 43 },
+      { uf: "RS", cultura: "soja", ano: 2023, rendimento: 1912, precip_ciclo: 700, temp_media_ciclo: 21.9, n_estacoes: 43 },
+      { uf: "RS", cultura: "soja", ano: 2024, rendimento: 2806, precip_ciclo: 1150, temp_media_ciclo: 21.7, n_estacoes: 43 },
+    ];
+    const secas = safrasMaisSecas(linhas, 2);
+    expect(secas).toHaveLength(2);
+    expect(secas.map((linha) => linha.ano)).toEqual([2022, 2023]);
+  });
 });
