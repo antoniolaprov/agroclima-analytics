@@ -1,6 +1,6 @@
 """Exporta as tabelas Gold para o JSON que o site estatico consome.
 
-Só as colunas que o site usa, com numeros arredondados: as Gold inteiras dao
+So as colunas que o site usa, com numeros arredondados: as Gold inteiras dao
 1,7 MB, contra cerca de 600 KB aqui. Roda depois do dbt, pelo pipeline ou por
 `make exportar-web`.
 

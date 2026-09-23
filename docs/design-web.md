@@ -85,15 +85,13 @@ O `data/` com Bronze e DuckDB continua fora do git.
 ### 3.2 Integração com o pipeline
 
 - `make exportar-web` roda o script.
-- `src/pipeline.py` chama o export ao final, depois do `dbt build`. Assim a
-  execução diária do Airflow deixa os JSON atualizados no disco, prontos para
-  serem commitados quando o autor quiser publicar. O commit é manual e
-  deliberado: publicar é decisão de quem mantém, não efeito colateral de um
-  agendamento.
-- Para isso funcionar dentro do container, o `docker-compose.yml` passa a
-  montar `./web/public/data`. Hoje o container monta só `airflow`, `src`,
-  `dbt`, `data` e `tests`; sem essa montagem o export falharia na execução
-  diária, tentando escrever num caminho que não existe lá dentro.
+- `src/pipeline.py` chama o export ao final de `main()`, depois do `dbt
+  build`, mas isso é um passo local: a DAG do Airflow chama só `rodar_dbt`,
+  nunca `main()`, então o export nunca roda dentro do container. Atualizar os
+  JSON é uma execução manual, feita por quem mantém o projeto, via `make
+  exportar-web` ou `python -m src.pipeline`, antes de publicar.
+- O commit dos JSON é manual e deliberado: publicar é decisão de quem
+  mantém, não efeito colateral de um agendamento.
 
 ## 4. Páginas
 

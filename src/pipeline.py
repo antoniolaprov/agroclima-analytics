@@ -2,7 +2,6 @@ import logging
 import subprocess
 import sys
 
-from scripts import exportar_web as _exportar_web
 from src import config
 from src.ingestion import inmet_api, sidra_api
 
@@ -55,7 +54,9 @@ def rodar_dbt() -> None:
 
 
 def exportar_web() -> dict:
-    return _exportar_web.exportar()
+    from scripts import exportar_web as modulo
+
+    return modulo.exportar()
 
 
 def main(anos=None) -> dict:
