@@ -97,6 +97,8 @@ def test_meta_descreve_o_extrato(banco, tmp_path):
     assert meta["ufs"] == ["MT", "RS"]
     assert meta["culturas"] == ["soja"]
     assert meta["anos"] == [2024, 2025]
+    assert meta["anos_clima"] == [2024]
+    assert meta["anos_safra"] == [2025]
     assert meta["linhas_por_arquivo"]["clima"] == 1
     assert meta["gerado_em"].startswith("20")
     assert meta["fontes"]

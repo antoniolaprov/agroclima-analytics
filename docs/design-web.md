@@ -202,7 +202,6 @@ descrição do repositório no GitHub.
   e o Streamlit é a ferramenta de análise local
 - `docs/design.md`: referência a este documento
 - `Makefile`: alvos `exportar-web`, `web-dev` e `web-build`
-- `docker-compose.yml`: monta `./web/public/data` no container do Airflow
 - `src/pipeline.py`: chamada do export ao final
 
 Nada do pipeline, do dbt ou do dashboard muda de comportamento.
@@ -212,6 +211,6 @@ Nada do pipeline, do dbt ou do dashboard muda de comportamento.
 | Risco | Mitigação |
 |---|---|
 | Orientação dos anéis da malha quebra o mapa | Teste sobre a orientação, e a correção já conhecida do Streamlit |
-| JSON versionado desatualizar em relação ao warehouse | `gerado_em` no rodapé; export roda ao final do pipeline |
+| JSON versionado desatualizar em relação ao warehouse | `make exportar-web` refaz o extrato antes de publicar; `gerado_em` no rodapé mostra a idade do extrato |
 | Paleta perder contraste no fundo editorial | Revalidar a paleta contra o fundo novo antes de aplicar |
 | Crescimento do JSON com mais anos de dados | Colunas enxutas e arredondamento; a cada ano entram ~300 linhas de clima e ~1.400 de safra |

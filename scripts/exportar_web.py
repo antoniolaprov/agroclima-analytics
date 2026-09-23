@@ -93,9 +93,9 @@ def exportar(caminho_banco: Path = config.DUCKDB_PATH, destino: Path = DESTINO_P
             """
         ).fetchall()]
         culturas = [c for (c,) in con.execute("select distinct cultura from gold_safra_uf order by 1").fetchall()]
-        anos = [a for (a,) in con.execute(
-            "select distinct ano from (select ano from gold_safra_uf union select ano from gold_clima_uf_mensal) order by 1"
-        ).fetchall()]
+        anos_clima = [a for (a,) in con.execute("select distinct ano from gold_clima_uf_mensal order by 1").fetchall()]
+        anos_safra = [a for (a,) in con.execute("select distinct ano from gold_safra_uf order by 1").fetchall()]
+        anos = sorted(set(anos_clima) | set(anos_safra))
     finally:
         con.close()
 
@@ -104,6 +104,8 @@ def exportar(caminho_banco: Path = config.DUCKDB_PATH, destino: Path = DESTINO_P
         "ufs": ufs,
         "culturas": culturas,
         "anos": anos,
+        "anos_clima": anos_clima,
+        "anos_safra": anos_safra,
         "linhas_por_arquivo": contagem,
         "fontes": FONTES,
     }
