@@ -38,7 +38,7 @@ EXTRATOS = {
     ),
     "safra": (
         "gold_safra_uf",
-        ["uf", "cultura", "ano", "producao", "rendimento", "area_colhida", "var_producao_aa"],
+        ["uf", "uf_codigo", "cultura", "ano", "producao", "rendimento", "area_colhida", "var_producao_aa"],
         {"producao": 0, "rendimento": 0, "area_colhida": 0, "var_producao_aa": 2},
     ),
     "clima_safra": (

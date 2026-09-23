@@ -59,8 +59,9 @@ def test_exporta_so_as_colunas_do_site(banco, tmp_path):
     }
     safra = json.loads((destino / "safra.json").read_text(encoding="utf-8"))
     assert set(safra[0]) == {
-        "uf", "cultura", "ano", "producao", "rendimento", "area_colhida", "var_producao_aa",
+        "uf", "uf_codigo", "cultura", "ano", "producao", "rendimento", "area_colhida", "var_producao_aa",
     }
+    assert safra[0]["uf_codigo"] == "51"
 
 
 def test_arredonda_os_numeros(banco, tmp_path):

@@ -11,7 +11,9 @@ describe("carregamento dos extratos", () => {
   });
 
   it("le safra e clima_safra", () => {
-    expect(carregarSafra().length).toBeGreaterThan(0);
+    const safra = carregarSafra();
+    expect(safra.length).toBeGreaterThan(0);
+    expect(safra[0].uf_codigo).toMatch(/^\d{2}$/);
     expect(carregarClimaSafra().length).toBeGreaterThan(0);
   });
 
