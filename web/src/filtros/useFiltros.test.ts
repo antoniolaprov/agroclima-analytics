@@ -45,4 +45,14 @@ describe("filtros na URL", () => {
     const filtros = lerFiltros(new URLSearchParams(query), padrao);
     expect(filtros).toEqual(original);
   });
+
+  it("nao apaga parametros de outro dono ao reescrever os filtros", () => {
+    // A pagina de Safra tambem escreve `eixo` na URL. Montar a query do zero
+    // apagaria a escolha do leitor no primeiro clique em qualquer filtro.
+    const atuais = new URLSearchParams("ufs=MT&culturas=soja&ano_ini=1974&ano_fim=2025&eixo=temp_media_ciclo");
+    const query = montarQuery({ ufs: ["MT", "PR"], culturas: ["soja"], anoIni: 1974, anoFim: 2025 }, atuais);
+    const depois = new URLSearchParams(query);
+    expect(depois.get("eixo")).toBe("temp_media_ciclo");
+    expect(depois.get("ufs")).toBe("MT,PR");
+  });
 });

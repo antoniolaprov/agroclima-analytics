@@ -233,10 +233,6 @@ O desenho completo, com as decisoes e o porque de cada uma, esta em
 - Com cinco anos de clima, cada estado tem poucas safras completas, e a
   correlacao da pagina Clima x Safra descreve a amostra selecionada, nao uma
   relacao de causa.
-- No site, o estado dos filtros (UF, cultura e periodo) vai para a URL e um
-  link reabre a mesma selecao, mas a escolha entre chuva e temperatura no eixo
-  da dispersao nao vai: ela e opcao de visualizacao, nao filtro, e um link
-  reabre sempre em chuva.
 
 ## Fontes
 

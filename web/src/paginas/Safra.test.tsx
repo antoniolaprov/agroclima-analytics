@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { LinhaClimaSafra } from "@/src/lib/dados";
 import { climaSafraExemplo, metaExemplo, safraExemplo } from "@/src/teste/exemplos";
 import { Safra } from "./Safra";
@@ -13,9 +13,10 @@ const metaPeriodoAmplo = {
   anos_clima: [2024, 2025],
 };
 
-// Mutavel para o teste do periodo padrao, que precisa renderizar sem
-// parametros na URL; os demais testes fixam a selecao de sempre.
-let query = "ufs=MT,RS&culturas=soja&ano_ini=2024&ano_fim=2025";
+// Mutavel porque alguns testes precisam de outra URL; o beforeEach devolve a
+// selecao de sempre para a ordem dos testes nao importar.
+const QUERY_PADRAO = "ufs=MT,RS&culturas=soja&ano_ini=2024&ano_fim=2025";
+let query = QUERY_PADRAO;
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(query),
@@ -24,6 +25,10 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("pagina de Safra", () => {
+  beforeEach(() => {
+    query = QUERY_PADRAO;
+  });
+
   it("mostra producao, rendimento, variacao e o cruzamento", () => {
     render(<Safra safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaExemplo} />);
     expect(screen.getByRole("heading", { name: /Safra/ })).toBeInTheDocument();
@@ -92,6 +97,38 @@ describe("pagina de Safra", () => {
     expect(Number(anoInicial.value)).toBe(metaPeriodoAmplo.anos_safra[0]);
     expect(Number(anoFinal.value)).toBe(
       metaPeriodoAmplo.anos_safra[metaPeriodoAmplo.anos_safra.length - 1],
+    );
+  });
+  it("abre no eixo que veio da URL", () => {
+    query = `${QUERY_PADRAO}&eixo=temp_media_ciclo`;
+    render(<Safra safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaExemplo} />);
+    expect(screen.getByRole("button", { name: /Temperatura média no ciclo/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: /Chuva acumulada no ciclo/ })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    // O rotulo do eixo X da dispersao acompanha a escolha, senao o link
+    // reabriria com o botao certo e o grafico errado.
+    expect(screen.getAllByText("Temperatura média no ciclo (°C)").length).toBeGreaterThan(1);
+  });
+
+  it("abre em chuva quando a URL nao diz qual eixo", () => {
+    render(<Safra safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaExemplo} />);
+    expect(screen.getByRole("button", { name: /Chuva acumulada no ciclo/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("ignora um eixo que nao existe e abre no padrao", () => {
+    query = `${QUERY_PADRAO}&eixo=umidade`;
+    render(<Safra safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaExemplo} />);
+    expect(screen.getByRole("button", { name: /Chuva acumulada no ciclo/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
     );
   });
 });

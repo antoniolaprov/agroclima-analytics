@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Filtros } from "@/src/filtros/Filtros";
 import { useFiltros } from "@/src/filtros/useFiltros";
+import { useOpcaoUrl } from "@/src/filtros/useOpcaoUrl";
 import { Barras } from "@/src/graficos/Barras";
 import { Dispersao } from "@/src/graficos/Dispersao";
 import { Linha } from "@/src/graficos/Linha";
@@ -17,6 +18,8 @@ const EIXOS = {
 } as const;
 
 type Eixo = keyof typeof EIXOS;
+
+const OPCOES_EIXO = Object.keys(EIXOS) as Eixo[];
 
 function pivotarPorAno(linhas: LinhaSafra[], campo: keyof LinhaSafra) {
   const porAno = new Map<number, Record<string, string | number | null>>();
@@ -36,7 +39,7 @@ export function Safra({
   meta: Meta;
 }) {
   const atribuidas = useRef<Record<string, string>>({});
-  const [eixo, setEixo] = useState<Eixo>("precip_ciclo");
+  const [eixo, setEixo] = useOpcaoUrl<Eixo>("eixo", OPCOES_EIXO, "precip_ciclo");
   const { filtros, definir } = useFiltros({
     ufs: ["MT", "PR", "RS"],
     // soja e a cultura com serie cheia nos tres estados padrao; abrir em
@@ -135,7 +138,7 @@ export function Safra({
           <section>
             <h2 className="font-serif text-2xl">Clima e safra</h2>
             <div className="mt-2 flex gap-2 text-sm">
-              {(Object.keys(EIXOS) as Eixo[]).map((opcao) => (
+              {OPCOES_EIXO.map((opcao) => (
                 <button
                   key={opcao}
                   type="button"

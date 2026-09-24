@@ -169,11 +169,16 @@ posição na seleção**. Tirar uma UF do filtro não repinta as outras.
 | `lib/cores.ts` | Paleta e atribuição estável por UF |
 | `graficos/Linha.tsx`, `Barras.tsx`, `Dispersao.tsx` | Invólucros sobre Recharts com eixos, tooltip e legenda padronizados |
 | `graficos/MapaUF.tsx` | Mapa em SVG com `d3-geo` |
-| `filtros/` | UF, cultura e período, com o estado na URL |
+| `filtros/` | UF, cultura e período, com o estado na URL, mais as escolhas de visualização que a página quiser guardar lá |
 | `layout/` | Cabeçalho, rodapé e a casca das seções |
 
 O estado dos filtros vive na URL (`searchParams`): uma seleção vira link
-compartilhável sem nenhum armazenamento.
+compartilhável sem nenhum armazenamento. A escolha entre chuva e temperatura no
+eixo da dispersão de Safra também vai para lá, por `useOpcaoUrl`, mas separada
+do tipo `Filtros`: é uma opção de visualização, não um recorte do dado, e não
+deve aparecer como parâmetro morto nas páginas que não têm essa escolha. Quem
+escreve na URL mescla no que já está lá em vez de remontar a query, senão um
+dono apagaria o parâmetro do outro no primeiro clique.
 
 **Mapa.** Recharts não faz mapas. O coroplético é SVG desenhado com `d3-geo`
 a partir da malha do IBGE. A malha segue a RFC 7946, com anel externo em

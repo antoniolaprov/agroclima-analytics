@@ -33,13 +33,15 @@ export function lerFiltros(parametros: URLSearchParams, padrao: Filtros): Filtro
   };
 }
 
-export function montarQuery(filtros: Filtros): string {
-  const parametros = new URLSearchParams({
-    ufs: filtros.ufs.join(","),
-    culturas: filtros.culturas.join(","),
-    ano_ini: String(filtros.anoIni),
-    ano_fim: String(filtros.anoFim),
-  });
+// `atuais` preserva os parametros que nao sao filtros, como a escolha de eixo
+// da pagina de Safra: montar a query do zero apagaria essa escolha no primeiro
+// clique em qualquer filtro.
+export function montarQuery(filtros: Filtros, atuais?: URLSearchParams): string {
+  const parametros = new URLSearchParams(atuais);
+  parametros.set("ufs", filtros.ufs.join(","));
+  parametros.set("culturas", filtros.culturas.join(","));
+  parametros.set("ano_ini", String(filtros.anoIni));
+  parametros.set("ano_fim", String(filtros.anoFim));
   return parametros.toString();
 }
 
@@ -62,9 +64,10 @@ export function useFiltros(padrao: Filtros) {
     (parcial: Partial<Filtros>) => {
       const novos = { ...filtros, ...parcial };
       novos.ufs = novos.ufs.slice(0, MAX_UFS);
-      rota.replace(`${caminho}?${montarQuery(novos)}`, { scroll: false });
+      const query = montarQuery(novos, new URLSearchParams(parametros.toString()));
+      rota.replace(`${caminho}?${query}`, { scroll: false });
     },
-    [filtros, rota, caminho],
+    [filtros, parametros, rota, caminho],
   );
 
   return { filtros, definir };
