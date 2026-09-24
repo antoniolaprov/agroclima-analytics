@@ -270,6 +270,11 @@ dashboard pode falhar ao abrir conexão. Mitigação: o dashboard abre conexão
 somente-leitura, curta, por consulta, com `st.cache_data` e uma nova
 tentativa em caso de lock. A janela de escrita é de poucos segundos.
 
+O site público em `web/` tem desenho próprio, descrito em
+[design-web.md](design-web.md). Ele consome um extrato estático das tabelas
+Gold, versionado no repositório, e não acessa o DuckDB diretamente: o dashboard
+é a ferramenta de análise local, o site é a vitrine pública.
+
 ## 9. Estrutura do repositório
 
 ```

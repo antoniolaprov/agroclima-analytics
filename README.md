@@ -33,6 +33,26 @@ O Airflow agenda o processo todo dia as 09h UTC (06h no horario de Brasilia).
 
 ![Clima x Safra](docs/img/clima_x_safra.png)
 
+## Site
+
+O site publico em `web/` e a vitrine do projeto: uma home que conta o que os
+dados mostram e duas paginas de exploracao, Clima e Safra. Ele le um extrato
+estatico das tabelas Gold, versionado em `web/public/data`, e nao acessa o
+DuckDB. O desenho esta em [docs/design-web.md](docs/design-web.md) e o README
+proprio em [web/README.md](web/README.md).
+
+O dashboard Streamlit continua sendo a ferramenta de analise local, com todas
+as colunas e filtros; o site e o que se mostra para quem chega de fora.
+
+```
+make exportar-web   # regenera o extrato a partir do warehouse
+make web-dev        # sobe o site em http://localhost:3000
+make web-build      # gera o site estatico em web/out
+```
+
+O export nao roda na execucao diaria do Airflow. Publicar dado novo e uma
+decisao deliberada: rodar `make exportar-web` e commitar o resultado.
+
 ## O que os dados mostram
 
 Com os filtros padrao (soja em MT, PR e RS), a chuva acumulada no ciclo tem
@@ -158,6 +178,9 @@ make dbt          # cd dbt && dbt build
 make dashboard    # streamlit run dashboard/app.py
 make up           # docker compose up -d
 make down         # docker compose down
+make exportar-web # regenera web/public/data a partir do warehouse
+make web-dev      # sobe o site em http://localhost:3000
+make web-build    # gera o site estatico em web/out
 ```
 
 ## Estrutura
@@ -171,6 +194,8 @@ O desenho completo, com as decisoes e o porque de cada uma, esta em
 - `dbt/models/marts` - KPIs e cruzamentos (Gold)
 - `dbt/tests` - testes singulares do dbt
 - `dashboard` - aplicacao Streamlit
+- `scripts/exportar_web.py` - extrai as tabelas Gold para `web/public/data`
+- `web` - site publico em Next.js, estatico
 - `airflow/dags` - agendamento
 - `airflow/iniciar.sh` - partida do container do Airflow (usuario e dependencias do dbt)
 - `requirements.txt` - dependencias para rodar local e o dashboard
@@ -208,6 +233,10 @@ O desenho completo, com as decisoes e o porque de cada uma, esta em
 - Com cinco anos de clima, cada estado tem poucas safras completas, e a
   correlacao da pagina Clima x Safra descreve a amostra selecionada, nao uma
   relacao de causa.
+- No site, o estado dos filtros (UF, cultura e periodo) vai para a URL e um
+  link reabre a mesma selecao, mas a escolha entre chuva e temperatura no eixo
+  da dispersao nao vai: ela e opcao de visualizacao, nao filtro, e um link
+  reabre sempre em chuva.
 
 ## Fontes
 

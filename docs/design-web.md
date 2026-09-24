@@ -58,9 +58,9 @@ localmente, sem depender de servidor. Não há SSR nem rotas de API: todo dado
 | Arquivo | Colunas |
 |---|---|
 | `clima.json` | `uf`, `ano`, `mes`, `temp_media`, `temp_media_movel_3m`, `precipitacao`, `anomalia_temp`, `dias_sem_chuva`, `n_estacoes` |
-| `safra.json` | `uf`, `cultura`, `ano`, `producao`, `rendimento`, `area_colhida`, `var_producao_aa` |
+| `safra.json` | `uf`, `uf_codigo`, `cultura`, `ano`, `producao`, `rendimento`, `area_colhida`, `var_producao_aa` |
 | `clima_safra.json` | `uf`, `cultura`, `ano`, `rendimento`, `precip_ciclo`, `temp_media_ciclo`, `n_estacoes` |
-| `meta.json` | `gerado_em`, `anos`, `ufs`, `culturas`, `linhas_por_arquivo`, `fontes` |
+| `meta.json` | `gerado_em`, `anos`, `anos_clima`, `anos_safra`, `ufs`, `culturas`, `linhas_por_arquivo`, `fontes` |
 
 Regras do export:
 
@@ -73,8 +73,16 @@ Regras do export:
   `web/public/data/uf_br.geojson`. Uma fonte, dois consumidores; o arquivo não
   é duplicado à mão no repositório.
 
-Tamanho esperado: cerca de 600 KB crus, perto de 80 KB comprimidos, contra
-1,7 MB se exportássemos as Gold inteiras.
+`uf_codigo` existe porque o mapa casa pelo código IBGE (`codarea` da malha),
+não pela sigla. `anos_clima` e `anos_safra` são listas separadas porque a série
+da PAM tem 52 anos e a do clima tem 5: um único campo `anos` faria o seletor de
+período da página de Clima oferecer 1974 e responder "sem dados".
+
+Tamanho real do extrato: 1,19 MB crus, dos quais `safra.json` sozinho ocupa
+753 KB por causa dos 52 anos da PAM. A estimativa inicial de 600 KB contava só
+a janela do clima. Servido com gzip, o que chega ao navegador é 22 KB na página
+de Clima e 99 KB na home e na de Safra, mais 103 KB de JavaScript
+compartilhado.
 
 **Os JSON são versionados.** É o que permite publicar sem servidor: a Vercel
 publica o que está no repositório. O `meta.json` traz `gerado_em`, exibido no
@@ -214,3 +222,4 @@ Nada do pipeline, do dbt ou do dashboard muda de comportamento.
 | JSON versionado desatualizar em relação ao warehouse | `make exportar-web` refaz o extrato antes de publicar; `gerado_em` no rodapé mostra a idade do extrato |
 | Paleta perder contraste no fundo editorial | Revalidar a paleta contra o fundo novo antes de aplicar |
 | Crescimento do JSON com mais anos de dados | Colunas enxutas e arredondamento; a cada ano entram ~300 linhas de clima e ~1.400 de safra |
+| Páginas pesadas: os dados entram no HTML pré-renderizado, então a home e a de Safra têm ~930 KB crus cada | Comprimidas são 99 KB, dentro do aceitável. Se a safra dobrar de tamanho, o caminho é a página de Safra buscar o JSON em tempo de execução em vez de recebê-lo como prop |

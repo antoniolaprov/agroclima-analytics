@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Site do AgroClima Analytics
 
-## Getting Started
+Site estatico em Next.js que mostra os resultados do pipeline. Nao ha backend
+nem banco: os dados vem de `public/data`, um extrato das tabelas Gold gerado por
+`python scripts/exportar_web.py` na raiz do repositorio e versionado junto com o
+codigo.
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+npm install
+npm run dev      # http://localhost:3000
+npm test         # vitest
+npm run build    # gera out/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para atualizar os dados depois de rodar o pipeline:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+cd .. && make exportar-web
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+O export nao roda sozinho na execucao diaria do Airflow. Publicar e uma decisao
+de quem mantem, entao os JSON so mudam quando alguem roda o comando e commita o
+resultado.
 
-## Learn More
+## Estrutura
 
-To learn more about Next.js, take a look at the following resources:
+- `app/` - rotas do App Router; cada pagina so carrega os JSON e passa como prop
+- `src/paginas/` - os componentes de cada pagina, que e onde mora a logica
+- `src/graficos/` - involucros sobre Recharts e o mapa em SVG com `d3-geo`
+- `src/filtros/` - selecao de UF, cultura e periodo, com o estado na URL
+- `src/layout/` - cabecalho, rodape e a casca das secoes
+- `src/lib/` - carga dos dados, formatacao, paleta e calculos
+- `public/data/` - o extrato versionado, mais a malha das UFs do IBGE
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notas
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**A malha do IBGE segue a RFC 7946**, com o anel externo em sentido
+anti-horario, e o `d3-geo` espera o contrario: sem inverter os aneis o mapa
+inteiro e pintado de uma cor so. A inversao esta em `src/graficos/mapa.ts` e
+`mapa.test.ts` a cobre contra o arquivo real, nao contra um poligono de exemplo.
 
-## Deploy on Vercel
+**Teste verde nao garante tela certa.** Os graficos do Recharts desenham grade e
+eixos mesmo sem dado nenhum, entao os testes afirmam geometria (quantas curvas,
+quantas barras, `d` preenchido) e nao a presenca de um `<svg>`. Antes de
+publicar, abra as tres paginas no navegador.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**`null` e ausencia e nunca vira zero.** Chuva de mes incompleto e variacao sem
+ano anterior chegam como `null`; a curva fica partida, a barra nao aparece e o
+mapa pinta cinza, que e diferente do verde mais claro.
