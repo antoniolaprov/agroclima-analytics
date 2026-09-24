@@ -6,7 +6,9 @@ import { MapaUF } from "@/src/graficos/MapaUF";
 import { Secao } from "@/src/layout/Secao";
 import { correlacao } from "@/src/lib/correlacao";
 import type { LinhaClimaSafra, LinhaSafra, Meta } from "@/src/lib/dados";
-import { producaoPorCodigoUf, safrasMaisSecas, ultimoAno } from "@/src/lib/destaques";
+import {
+  producaoPorCodigoUf, safrasMaisSecas, siglaPorCodigoUf, ultimoAno,
+} from "@/src/lib/destaques";
 import {
   cultura as nomeCultura, inteiro, numero, porExtensoFeminino,
 } from "@/src/lib/formato";
@@ -52,6 +54,7 @@ export function Home({
     () => producaoPorCodigoUf(safra, cultura, ano),
     [safra, cultura, ano],
   );
+  const siglas = useMemo(() => siglaPorCodigoUf(safra), [safra]);
 
   const doAno = safra.filter((linha) => linha.cultura === cultura && linha.ano === ano);
   const comProducao = doAno.filter(
@@ -135,6 +138,7 @@ export function Home({
         </div>
         <MapaUF
           valores={valores}
+          siglas={siglas}
           rotulo={`Produção de ${nomeCultura(cultura).toLocaleLowerCase("pt-BR")} em ${ano} (t)`}
         />
       </Secao>

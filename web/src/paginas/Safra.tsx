@@ -42,7 +42,12 @@ export function Safra({
     // soja e a cultura com serie cheia nos tres estados padrao; abrir em
     // meta.culturas[0] (cafe, por ordem alfabetica) deixa RS e PR quase vazios.
     culturas: meta.culturas.includes("soja") ? ["soja"] : meta.culturas.slice(0, 1),
-    anoIni: meta.anos_clima[0],
+    // O cruzamento clima x safra so existe no intervalo de anos_clima, mas
+    // cabe inteiro em qualquer janela que comece antes disso: abrir em
+    // anos_clima[0] nao ajuda o cruzamento e corta a maior parte dos anos da
+    // PAM nos graficos de producao e rendimento, que sao o assunto principal
+    // da pagina.
+    anoIni: meta.anos_safra[0],
     anoFim: meta.anos_safra[meta.anos_safra.length - 1],
   });
 

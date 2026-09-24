@@ -20,12 +20,23 @@ describe("pagina de Clima", () => {
     // climaExemplo tem MT e RS (duas UFs selecionadas) e a pagina desenha tres
     // graficos: grade e eixos aparecem mesmo sem dado, entao contar <svg> nao
     // prova que a curva existe. Conta as curvas de verdade e exige "d" preenchido.
+    // Temperatura tem o dobro (curva e media movel tracejada por UF): 4 + 2 + 2.
     const curvas = container.querySelectorAll("path.recharts-line-curve");
-    expect(curvas.length).toBe(6);
+    expect(curvas.length).toBe(8);
     curvas.forEach((curva) => {
       expect(curva.getAttribute("d")).toBeTruthy();
     });
     expect(screen.getByRole("table")).toBeInTheDocument();
+  });
+
+  it("no grafico de temperatura, desenha a curva e a media movel tracejada por UF", () => {
+    render(<Clima linhas={climaExemplo} meta={metaExemplo} />);
+    const secaoTemperatura = screen.getByText(/Temperatura média/).closest("section");
+    expect(secaoTemperatura).not.toBeNull();
+    const curvas = secaoTemperatura!.querySelectorAll("path.recharts-line-curve");
+    expect(curvas.length).toBe(4);
+    const tracejadas = [...curvas].filter((curva) => curva.getAttribute("stroke-dasharray"));
+    expect(tracejadas.length).toBe(2);
   });
 
   it("avisa quando a selecao nao tem dados", () => {

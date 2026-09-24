@@ -7,10 +7,12 @@ import { corrigirOrientacao, escalaVerde, SEM_DADO, type MalhaUF } from "./mapa"
 
 export function MapaUF({
   valores,
+  siglas,
   rotulo,
   casas = 0,
 }: {
   valores: Record<string, number | null>;
+  siglas: Record<string, string>;
   rotulo: string;
   casas?: number;
 }) {
@@ -48,6 +50,7 @@ export function MapaUF({
         {caminhos.map((caminho) => (
           <path
             key={caminho.codigo}
+            data-uf-codigo={caminho.codigo}
             d={caminho.d}
             fill={escalaVerde(valores[caminho.codigo] ?? null, maximo)}
             stroke="#fbfbf9"
@@ -59,7 +62,7 @@ export function MapaUF({
       </svg>
       <figcaption className="mt-2 text-sm text-stone-600">
         {focada
-          ? `${focada}: ${numero(valores[focada] ?? null, casas)}`
+          ? `${siglas[focada] ?? focada}: ${numero(valores[focada] ?? null, casas)}`
           : rotulo}
       </figcaption>
       <div className="mt-2 flex items-center gap-2 text-xs text-stone-500">

@@ -18,6 +18,17 @@ export function producaoPorCodigoUf(
   return mapa;
 }
 
+// A malha do mapa casa por codigo IBGE (codarea), entao MapaUF fica indexado
+// por uf_codigo; esse mapa serve so pra legenda mostrar a sigla em vez do
+// codigo ao passar o mouse.
+export function siglaPorCodigoUf(safra: LinhaSafra[]): Record<string, string> {
+  const mapa: Record<string, string> = {};
+  for (const linha of safra) {
+    mapa[linha.uf_codigo] = linha.uf;
+  }
+  return mapa;
+}
+
 // Ordena pela chuva acumulada no ciclo, da safra mais seca pra mais chuvosa,
 // e devolve as n primeiras; linhas sem chuva registrada ficam de fora.
 export function safrasMaisSecas(linhas: LinhaClimaSafra[], n: number): LinhaClimaSafra[] {

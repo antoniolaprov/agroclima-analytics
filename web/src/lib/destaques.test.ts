@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { LinhaClimaSafra } from "./dados";
-import { producaoPorCodigoUf, safrasMaisSecas, ultimoAno } from "./destaques";
+import {
+  producaoPorCodigoUf, safrasMaisSecas, siglaPorCodigoUf, ultimoAno,
+} from "./destaques";
 import { safraExemplo } from "@/src/teste/exemplos";
 
 describe("destaques da home", () => {
@@ -12,6 +14,12 @@ describe("destaques da home", () => {
     const mapa = producaoPorCodigoUf(safraExemplo, "soja", 2025);
     expect(mapa["51"]).toBe(50175032);
     expect(mapa["43"]).toBe(13000000);
+  });
+
+  it("indexa a sigla pelo mesmo codigo IBGE usado pelo mapa", () => {
+    const mapa = siglaPorCodigoUf(safraExemplo);
+    expect(mapa["51"]).toBe("MT");
+    expect(mapa["43"]).toBe("RS");
   });
 
   it("acha as safras mais secas do ciclo, da mais seca pra menos seca", () => {

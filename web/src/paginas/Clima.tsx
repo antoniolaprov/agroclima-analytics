@@ -21,6 +21,22 @@ function pivotar(linhas: LinhaClima[], campo: keyof LinhaClima) {
   return [...porMes.values()].sort((a, b) => String(a.competencia).localeCompare(String(b.competencia)));
 }
 
+// Chave da media movel derivada da propria UF, pra nao colidir com a chave da
+// serie principal no mesmo registro pivotado.
+const CHAVE_MOVEL = (uf: string) => `${uf}__movel`;
+
+function pivotarComMovel(linhas: LinhaClima[]) {
+  const porMes = new Map<string, Record<string, string | number | null>>();
+  for (const linha of linhas) {
+    const chave = CHAVE_MES(linha);
+    const registro = porMes.get(chave) ?? { competencia: chave };
+    registro[linha.uf] = linha.temp_media;
+    registro[CHAVE_MOVEL(linha.uf)] = linha.temp_media_movel_3m;
+    porMes.set(chave, registro);
+  }
+  return [...porMes.values()].sort((a, b) => String(a.competencia).localeCompare(String(b.competencia)));
+}
+
 export function Clima({ linhas, meta }: { linhas: LinhaClima[]; meta: Meta }) {
   const atribuidas = useRef<Record<string, string>>({});
   const { filtros, definir } = useFiltros({
@@ -44,6 +60,10 @@ export function Clima({ linhas, meta }: { linhas: LinhaClima[]; meta: Meta }) {
 
   const cores = atribuir(filtros.ufs, atribuidas.current);
   const series = filtros.ufs.map((uf) => ({ chave: uf, nome: uf, cor: cores[uf] }));
+  const seriesComMovel = filtros.ufs.flatMap((uf) => [
+    { chave: uf, nome: uf, cor: cores[uf] },
+    { chave: CHAVE_MOVEL(uf), nome: `${uf} (média móvel)`, cor: cores[uf], tracejada: true },
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
@@ -65,7 +85,8 @@ export function Clima({ linhas, meta }: { linhas: LinhaClima[]; meta: Meta }) {
         <div className="mt-10 space-y-12">
           <section>
             <h2 className="font-serif text-2xl">Temperatura média (°C)</h2>
-            <Linha dados={pivotar(selecionadas, "temp_media")} x="competencia" series={series} rotuloY="°C" />
+            <p className="text-sm text-stone-500">A linha tracejada é a média móvel de três meses.</p>
+            <Linha dados={pivotarComMovel(selecionadas)} x="competencia" series={seriesComMovel} rotuloY="°C" />
           </section>
 
           <section>

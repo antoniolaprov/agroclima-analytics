@@ -4,8 +4,21 @@ import type { LinhaClimaSafra } from "@/src/lib/dados";
 import { climaSafraExemplo, metaExemplo, safraExemplo } from "@/src/teste/exemplos";
 import { Safra } from "./Safra";
 
+// A PAM tem decadas de historico e o clima so alguns anos; um meta onde as
+// duas listas divergem e o unico jeito de pegar a regressao de abrir a pagina
+// em anos_clima[0] em vez de anos_safra[0].
+const metaPeriodoAmplo = {
+  ...metaExemplo,
+  anos_safra: [1974, 2024, 2025],
+  anos_clima: [2024, 2025],
+};
+
+// Mutavel para o teste do periodo padrao, que precisa renderizar sem
+// parametros na URL; os demais testes fixam a selecao de sempre.
+let query = "ufs=MT,RS&culturas=soja&ano_ini=2024&ano_fim=2025";
+
 vi.mock("next/navigation", () => ({
-  useSearchParams: () => new URLSearchParams("ufs=MT,RS&culturas=soja&ano_ini=2024&ano_fim=2025"),
+  useSearchParams: () => new URLSearchParams(query),
   usePathname: () => "/safra",
   useRouter: () => ({ replace: vi.fn() }),
 }));
@@ -69,5 +82,16 @@ describe("pagina de Safra", () => {
     expect(paragrafoCorrelacao.querySelector("strong")).toHaveTextContent("-");
     const pontos = container.querySelectorAll(".recharts-scatter-symbol");
     expect(pontos.length).toBe(climaSafraDoisPontos.length);
+  });
+
+  it("abre com o periodo inteiro da safra, nao so o do cruzamento com clima", () => {
+    query = "";
+    render(<Safra safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaPeriodoAmplo} />);
+    const anoInicial = screen.getByLabelText("Ano inicial") as HTMLSelectElement;
+    const anoFinal = screen.getByLabelText("Ano final") as HTMLSelectElement;
+    expect(Number(anoInicial.value)).toBe(metaPeriodoAmplo.anos_safra[0]);
+    expect(Number(anoFinal.value)).toBe(
+      metaPeriodoAmplo.anos_safra[metaPeriodoAmplo.anos_safra.length - 1],
+    );
   });
 });

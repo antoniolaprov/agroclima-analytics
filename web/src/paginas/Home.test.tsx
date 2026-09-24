@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MalhaUF } from "@/src/graficos/mapa";
 import type { LinhaClimaSafra } from "@/src/lib/dados";
@@ -80,6 +80,18 @@ describe("home", () => {
     caminhos.forEach((caminho) => expect(caminho.getAttribute("d")).toBeTruthy());
     const cores = new Set([...caminhos].map((caminho) => caminho.getAttribute("fill")));
     expect(cores.size).toBeGreaterThan(1);
+  });
+
+  it("na legenda do mapa, mostra a sigla da UF em vez do codigo IBGE", async () => {
+    render(<Home safra={safraExemplo} climaSafra={climaSafraExemplo} meta={metaExemplo} />);
+    const mapa = await screen.findByRole("img");
+    // safraExemplo indexa MT pelo codigo IBGE "51"; a legenda deve mostrar a
+    // sigla, nao esse codigo.
+    const caminhoMt = mapa.querySelector('path[data-uf-codigo="51"]');
+    expect(caminhoMt).not.toBeNull();
+    fireEvent.mouseEnter(caminhoMt!);
+    expect(screen.getByText(/^MT: /)).toBeInTheDocument();
+    expect(screen.queryByText(/^51: /)).not.toBeInTheDocument();
   });
 
   it("no bloco do RS, destaca as safras mais secas separadas do resto", async () => {
