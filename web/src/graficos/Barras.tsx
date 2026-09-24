@@ -41,9 +41,7 @@ export function Barras({
             name={serie.nome}
             fill={serie.cor}
             radius={[4, 4, 0, 0]}
-            // Painel de dados, nao uma peca de apresentacao: a animacao de entrada
-            // nao agrega nada e, ligada, um grafico sem nenhuma barra ainda passa
-            // no teste (o retangulo so existe apos um frame de animacao).
+            // Ver comentario sobre isAnimationActive em Linha.tsx.
             isAnimationActive={false}
           />
         ))}

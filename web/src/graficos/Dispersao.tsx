@@ -39,9 +39,7 @@ export function Dispersao({
             name={grupo.nome}
             data={grupo.pontos}
             fill={grupo.cor}
-            // Painel de dados, nao uma peca de apresentacao: a animacao de entrada
-            // nao agrega nada e, ligada, um grafico sem nenhum ponto ainda passa
-            // no teste (o ponto so existe apos um frame de animacao).
+            // Ver comentario sobre isAnimationActive em Linha.tsx.
             isAnimationActive={false}
           />
         ))}

@@ -145,9 +145,12 @@ os filtros ficam num painel recolhível.
 
 ## 5. Sistema visual
 
-Tailwind com shadcn/ui. Tipografia em dois níveis: serifada nos títulos da
-home, sem serifa em interface e rótulos de gráfico. Fundo claro, muito espaço
-em branco, verde apenas nos dados.
+Tailwind, sem biblioteca de componentes. Os controles do site — filtros,
+botões de alternância, seletor de período — são poucos e simples, escritos à
+mão; a dependência do shadcn/ui não se pagava para esse volume de UI.
+Tipografia em dois níveis: serifada nos títulos da home, sem serifa em
+interface e rótulos de gráfico. Fundo claro, muito espaço em branco, verde
+apenas nos dados.
 
 **As cores dos dados são as mesmas do Streamlit**: a paleta categórica de oito
 posições já validada para daltonismo, e o verde sequencial no mapa. Os dois

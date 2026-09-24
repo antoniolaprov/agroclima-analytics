@@ -7,13 +7,13 @@ export function correlacao(pares: [number, number][]): number | null {
   const mediaY = validos.reduce((soma, [, y]) => soma + y, 0) / n;
 
   let covariancia = 0;
-  let variaciaX = 0;
-  let variaciaY = 0;
+  let varianciaX = 0;
+  let varianciaY = 0;
   for (const [x, y] of validos) {
     covariancia += (x - mediaX) * (y - mediaY);
-    variaciaX += (x - mediaX) ** 2;
-    variaciaY += (y - mediaY) ** 2;
+    varianciaX += (x - mediaX) ** 2;
+    varianciaY += (y - mediaY) ** 2;
   }
-  if (variaciaX === 0 || variaciaY === 0) return null;
-  return covariancia / Math.sqrt(variaciaX * variaciaY);
+  if (varianciaX === 0 || varianciaY === 0) return null;
+  return covariancia / Math.sqrt(varianciaX * varianciaY);
 }
