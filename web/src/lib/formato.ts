@@ -11,7 +11,8 @@ export function inteiro(valor: number | null | undefined): string {
 }
 
 // Numeros pequenos no meio de uma frase leem melhor por extenso; acima de 10
-// (ou fora da faixa coberta) cai no algarismo de inteiro.
+// (ou fora da faixa coberta) cai no algarismo de inteiro. So um e dois mudam
+// no feminino ("uma", "duas"); do tres em diante a forma e a mesma.
 const NOMES_NUMERO: Record<number, string> = {
   1: "um",
   2: "dois",
@@ -25,8 +26,17 @@ const NOMES_NUMERO: Record<number, string> = {
   10: "dez",
 };
 
+const NOMES_NUMERO_FEMININO: Record<number, string> = {
+  1: "uma",
+  2: "duas",
+};
+
 export function porExtenso(valor: number): string {
   return NOMES_NUMERO[valor] ?? inteiro(valor);
+}
+
+export function porExtensoFeminino(valor: number): string {
+  return NOMES_NUMERO_FEMININO[valor] ?? porExtenso(valor);
 }
 
 // O pipeline normaliza os nomes das culturas sem acento; a interface mostra o

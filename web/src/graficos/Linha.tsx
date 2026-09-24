@@ -9,7 +9,7 @@ export type Serie = { chave: string; nome: string; cor: string; tracejada?: bool
 export type Registro = Record<string, string | number | null>;
 
 export function Linha({
-  dados, x, series, rotuloY, casas = 1, altura = 320,
+  dados, x, series, rotuloY, casas = 1, altura = 320, larguraEixoY = 56,
 }: {
   dados: Registro[];
   x: string;
@@ -17,6 +17,7 @@ export function Linha({
   rotuloY?: string;
   casas?: number;
   altura?: number;
+  larguraEixoY?: number;
 }) {
   return (
     <ResponsiveContainer width="100%" height={altura}>
@@ -24,7 +25,7 @@ export function Linha({
         <CartesianGrid stroke="#ece9e4" vertical={false} />
         <XAxis dataKey={x} tick={{ fontSize: 12, fill: "#78716c" }} tickLine={false} axisLine={false} />
         <YAxis
-          width={56}
+          width={larguraEixoY}
           tick={{ fontSize: 12, fill: "#78716c" }}
           tickLine={false}
           axisLine={false}

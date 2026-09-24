@@ -106,7 +106,14 @@ export function Safra({
         <div className="mt-10 space-y-12">
           <section>
             <h2 className="font-serif text-2xl">Produção por ano (t)</h2>
-            <Linha dados={pivotarPorAno(selecionadas, "producao")} x="ano" series={series} rotuloY="t" casas={0} />
+            <Linha
+              dados={pivotarPorAno(selecionadas, "producao")}
+              x="ano"
+              series={series}
+              rotuloY="t"
+              casas={0}
+              larguraEixoY={88}
+            />
           </section>
 
           <section>

@@ -1,11 +1,79 @@
-import { fireEvent, render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Filtros } from "./Filtros";
 
 const anos = [2022, 2023, 2024, 2025, 2026];
 const ufsDisponiveis = ["MT", "PR", "RS", "GO", "BA", "SP", "MG", "SC", "PA"];
 
+function simularTelaPequena() {
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  }));
+}
+
 describe("Filtros", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("em tela pequena comeca recolhido, com o resumo da selecao no botao", () => {
+    simularTelaPequena();
+    const filtros = { ufs: ["MT", "RS"], culturas: ["soja"], anoIni: 2022, anoFim: 2026 };
+    render(
+      <Filtros
+        filtros={filtros}
+        definir={vi.fn()}
+        ufsDisponiveis={ufsDisponiveis}
+        culturasDisponiveis={["soja"]}
+        anos={anos}
+      />,
+    );
+    const botao = screen.getByRole("button", { name: /MT, RS/ });
+    expect(botao).toHaveAttribute("aria-expanded", "false");
+    expect(botao).toHaveTextContent("Soja");
+    expect(screen.queryByText(/Estados \(até/)).not.toBeInTheDocument();
+  });
+
+  it("ao clicar no botao recolhido, expande e mostra os filtros", () => {
+    simularTelaPequena();
+    const filtros = { ufs: ["MT", "RS"], culturas: ["soja"], anoIni: 2022, anoFim: 2026 };
+    const { getByRole, getByText } = render(
+      <Filtros
+        filtros={filtros}
+        definir={vi.fn()}
+        ufsDisponiveis={ufsDisponiveis}
+        culturasDisponiveis={["soja"]}
+        anos={anos}
+      />,
+    );
+    const botao = getByRole("button", { name: /MT, RS/ });
+    fireEvent.click(botao);
+    expect(botao).toHaveAttribute("aria-expanded", "true");
+    expect(getByText(/Estados \(até/)).toBeInTheDocument();
+  });
+
+  it("em tela grande ja comeca aberto, sem precisar clicar", () => {
+    const filtros = { ufs: ["MT", "RS"], culturas: ["soja"], anoIni: 2022, anoFim: 2026 };
+    render(
+      <Filtros
+        filtros={filtros}
+        definir={vi.fn()}
+        ufsDisponiveis={ufsDisponiveis}
+        culturasDisponiveis={["soja"]}
+        anos={anos}
+      />,
+    );
+    expect(screen.getByText(/Estados \(até/)).toBeInTheDocument();
+  });
+
+
   it("desabilita UF nao selecionada quando o limite de oito e atingido", () => {
     const oito = ufsDisponiveis.slice(0, 8);
     const filtros = { ufs: oito, culturas: ["soja"], anoIni: 2022, anoFim: 2026 };

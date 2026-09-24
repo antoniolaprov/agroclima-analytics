@@ -20,6 +20,14 @@ export function Rodape({ meta }: { meta: Meta }) {
               </a>
             </li>
           ))}
+          <li>
+            <a
+              className="underline hover:text-stone-900"
+              href="https://github.com/antoniolaprov/agroclima-analytics#limitacoes-conhecidas"
+            >
+              Limitações conhecidas
+            </a>
+          </li>
         </ul>
       </div>
     </footer>

@@ -33,4 +33,12 @@ describe("Rodape", () => {
       "https://portal.inmet.gov.br/dadoshistoricos",
     );
   });
+
+  it("leva as limitacoes conhecidas do README", () => {
+    render(<Rodape meta={meta} />);
+    expect(screen.getByRole("link", { name: /Limitações conhecidas/ })).toHaveAttribute(
+      "href",
+      "https://github.com/antoniolaprov/agroclima-analytics#limitacoes-conhecidas",
+    );
+  });
 });

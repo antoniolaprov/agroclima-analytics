@@ -25,7 +25,10 @@ export function Clima({ linhas, meta }: { linhas: LinhaClima[]; meta: Meta }) {
   const atribuidas = useRef<Record<string, string>>({});
   const { filtros, definir } = useFiltros({
     ufs: ["MT", "PR", "RS"],
-    culturas: meta.culturas.slice(0, 1),
+    // A pagina de Clima nao tem filtro de cultura e nao filtra por ela; um
+    // padrao nao vazio aqui vaza pra URL (?culturas=...) e sugere ao leitor
+    // que os dados de clima sao so daquela cultura.
+    culturas: [],
     anoIni: meta.anos_clima[0],
     anoFim: meta.anos_clima[meta.anos_clima.length - 1],
   });

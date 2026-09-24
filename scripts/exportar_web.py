@@ -23,7 +23,7 @@ DESTINO_PADRAO = config.RAIZ / "web" / "public" / "data"
 MALHA = config.RAIZ / "dashboard" / "assets" / "uf_br.geojson"
 
 FONTES = [
-    {"nome": "INMET - dados historicos", "url": "https://portal.inmet.gov.br/dadoshistoricos"},
+    {"nome": "INMET - dados históricos", "url": "https://portal.inmet.gov.br/dadoshistoricos"},
     {"nome": "IBGE - agregados (SIDRA)", "url": "https://servicodados.ibge.gov.br/api/docs/agregados?versao=3"},
     {"nome": "IBGE - malhas", "url": "https://servicodados.ibge.gov.br/api/docs/malhas?versao=3"},
 ]

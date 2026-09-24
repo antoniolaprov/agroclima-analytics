@@ -7,7 +7,9 @@ import { Secao } from "@/src/layout/Secao";
 import { correlacao } from "@/src/lib/correlacao";
 import type { LinhaClimaSafra, LinhaSafra, Meta } from "@/src/lib/dados";
 import { producaoPorCodigoUf, safrasMaisSecas, ultimoAno } from "@/src/lib/destaques";
-import { cultura as nomeCultura, inteiro, numero, porExtenso } from "@/src/lib/formato";
+import {
+  cultura as nomeCultura, inteiro, numero, porExtensoFeminino,
+} from "@/src/lib/formato";
 
 const DESTAQUE = ["MT", "PR", "RS"];
 const COR_RESTANTE = "#a8a29e";
@@ -109,9 +111,8 @@ export function Home({
           lider ? (
             <p>
               Em {ano}, o país colheu {inteiro(producaoTotal)} toneladas de{" "}
-              {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, somando os {inteiro(comProducao.length)} de{" "}
-              {inteiro(doAno.length)} estados com produção registrada nesse ano — os demais não entram na
-              soma. {lider.uf} respondeu por {inteiro(lider.producao)} delas, com rendimento de{" "}
+              {nomeCultura(cultura).toLocaleLowerCase("pt-BR")}, soma que não cobre todos os estados.{" "}
+              {lider.uf} respondeu por {inteiro(lider.producao)} delas, com rendimento de{" "}
               {inteiro(lider.rendimento)} kg/ha.
             </p>
           ) : null
@@ -132,7 +133,10 @@ export function Home({
             </button>
           ))}
         </div>
-        <MapaUF valores={valores} rotulo={`Produção de ${nomeCultura(cultura)} em ${ano} (t)`} />
+        <MapaUF
+          valores={valores}
+          rotulo={`Produção de ${nomeCultura(cultura).toLocaleLowerCase("pt-BR")} em ${ano} (t)`}
+        />
       </Secao>
 
       <Secao
@@ -140,9 +144,9 @@ export function Home({
         descricao={
           rsSecas.length > 0 ? (
             <p>
-              O Rio Grande do Sul entra nesta amostra com apenas {porExtenso(rsCruzamento.length)} safras de{" "}
+              O Rio Grande do Sul entra nesta amostra com apenas {porExtensoFeminino(rsCruzamento.length)} safras de{" "}
               {nomeCultura(cultura).toLocaleLowerCase("pt-BR")} cruzadas com o clima — poucos pontos,
-              mas o padrão aparece: as {porExtenso(rsSecas.length)} mais secas do ciclo,{" "}
+              mas o padrão aparece: as {porExtensoFeminino(rsSecas.length)} mais secas do ciclo,{" "}
               {rsSecas.map((linha) => `${linha.ano} (${inteiro(linha.precip_ciclo)} mm)`).join(" e ")},
               também tiveram o pior rendimento,{" "}
               {rsSecas.map((linha) => `${inteiro(linha.rendimento)} kg/ha`).join(" e ")}.

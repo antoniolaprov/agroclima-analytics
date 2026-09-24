@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inteiro, numero, porExtenso } from "./formato";
+import { inteiro, numero, porExtenso, porExtensoFeminino } from "./formato";
 
 describe("numero", () => {
   it("usa o formato brasileiro", () => {
@@ -27,5 +27,22 @@ describe("porExtenso", () => {
   it("cai no algarismo acima de dez", () => {
     expect(porExtenso(11)).toBe("11");
     expect(porExtenso(24)).toBe("24");
+  });
+});
+
+describe("porExtensoFeminino", () => {
+  it("muda a forma de um e de dois", () => {
+    expect(porExtensoFeminino(1)).toBe("uma");
+    expect(porExtensoFeminino(2)).toBe("duas");
+  });
+
+  it("do tres em diante usa a mesma forma do masculino", () => {
+    expect(porExtensoFeminino(3)).toBe("três");
+    expect(porExtensoFeminino(10)).toBe("dez");
+  });
+
+  it("cai no algarismo acima de dez, igual ao masculino", () => {
+    expect(porExtensoFeminino(11)).toBe("11");
+    expect(porExtensoFeminino(24)).toBe("24");
   });
 });

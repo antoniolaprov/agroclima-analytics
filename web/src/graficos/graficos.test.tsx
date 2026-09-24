@@ -39,6 +39,22 @@ describe("graficos", () => {
     expect(container.querySelectorAll("path.recharts-rectangle").length).toBe(0);
   });
 
+  it("Linha repassa larguraEixoY para o eixo Y, para rotulos grandes nao cortarem", () => {
+    const { container } = render(
+      <Linha dados={dados} x="competencia" series={series} larguraEixoY={88} />,
+    );
+    const rotulo = container.querySelector(".recharts-yAxis-tick-labels text");
+    expect(rotulo).toHaveAttribute("width", "88");
+  });
+
+  it("Barras repassa larguraEixoY para o eixo Y, para rotulos grandes nao cortarem", () => {
+    const { container } = render(
+      <Barras dados={dados} x="competencia" series={series} larguraEixoY={88} />,
+    );
+    const rotulo = container.querySelector(".recharts-yAxis-tick-labels text");
+    expect(rotulo).toHaveAttribute("width", "88");
+  });
+
   it("Dispersao desenha um ponto por par x/y recebido", () => {
     const grupos = [
       { nome: "MT", cor: "#2a78d6", pontos: [{ x: 1066, y: 3109 }, { x: 1200, y: 3300 }] },

@@ -7,7 +7,7 @@ import { numero } from "@/src/lib/formato";
 import type { Registro, Serie } from "./Linha";
 
 export function Barras({
-  dados, x, series, rotuloY, casas = 0, altura = 320, linhaZero = false,
+  dados, x, series, rotuloY, casas = 0, altura = 320, linhaZero = false, larguraEixoY = 56,
 }: {
   dados: Registro[];
   x: string;
@@ -16,6 +16,7 @@ export function Barras({
   casas?: number;
   altura?: number;
   linhaZero?: boolean;
+  larguraEixoY?: number;
 }) {
   return (
     <ResponsiveContainer width="100%" height={altura}>
@@ -23,7 +24,7 @@ export function Barras({
         <CartesianGrid stroke="#ece9e4" vertical={false} />
         <XAxis dataKey={x} tick={{ fontSize: 12, fill: "#78716c" }} tickLine={false} axisLine={false} />
         <YAxis
-          width={56}
+          width={larguraEixoY}
           tick={{ fontSize: 12, fill: "#78716c" }}
           tickLine={false}
           axisLine={false}

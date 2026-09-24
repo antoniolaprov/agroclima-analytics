@@ -11,6 +11,24 @@ globalThis.ResizeObserver = globalThis.ResizeObserver ?? (ResizeObserverFalso as
 Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, value: 800 });
 Object.defineProperty(HTMLElement.prototype, "clientHeight", { configurable: true, value: 400 });
 
+// Filtros usa matchMedia pra saber se a tela e grande; jsdom nao implementa.
+// Comeca "grande" por padrao pra nao recolher o painel nos testes que nao
+// mexem nisso; um teste que precisa de tela pequena troca com vi.stubGlobal.
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  configurable: true,
+  value: (query: string) => ({
+    matches: true,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  }),
+});
+
 // O ResponsiveContainer do Recharts mede o container via getBoundingClientRect,
 // que o jsdom sempre retorna zerado; sem isso nenhum grafico desenha. Apenas o
 // div do proprio ResponsiveContainer recebe tamanho falso: o span interno de
