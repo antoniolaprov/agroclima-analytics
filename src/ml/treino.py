@@ -34,7 +34,7 @@ from src.ml import dados as dados_ml
 
 log = logging.getLogger(__name__)
 
-MODELOS_DIR = config.DATA_DIR / "modelos"
+MODELOS_DIR = config.MODELOS_DIR
 MLFLOW_DIR = config.DATA_DIR / "mlruns"
 NOME_EXPERIMENTO_MLFLOW = "agroclima-anomalia-rendimento"
 TOLERANCIA = 0.02

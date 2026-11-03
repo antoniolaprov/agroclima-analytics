@@ -32,6 +32,9 @@ O Airflow agenda o processo todo dia as 09h UTC (06h no horario de Brasilia).
 - **Safra** - producao, rendimento e variacao anual por estado e cultura
 - **Clima x Safra** - chuva ou temperatura acumulada no ciclo da cultura contra
   o rendimento, com a correlacao da amostra
+- **Previsao** - mapa e barras com a anomalia prevista para as safras que o IBGE
+  ainda nao publicou, o horizonte de cada previsao e o skill do modelo na
+  validacao (le `data/modelos/`, gerado por `make treinar` e `make prever`)
 
 ![Clima x Safra](docs/img/clima_x_safra.png)
 

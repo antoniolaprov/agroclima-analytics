@@ -4,6 +4,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 DATA_DIR = RAIZ / "data"
 BRONZE_DIR = DATA_DIR / "bronze"
 DUCKDB_PATH = DATA_DIR / "warehouse.duckdb"
+MODELOS_DIR = DATA_DIR / "modelos"
 
 # 2001 em diante: o zip de 2000 cobre so as poucas estacoes instaladas no fim
 # daquele ano. A primeira carga baixa cerca de 1,5 GB.
