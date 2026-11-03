@@ -11,13 +11,15 @@ a produtividade das principais culturas, por estado?
 
 ## O que o projeto faz
 
-1. Baixa o historico horario das estacoes automaticas do INMET (2022-2026)
+1. Baixa o historico horario das estacoes automaticas do INMET (2001-2026)
 2. Busca area, producao e rendimento de soja, milho, cafe e cana no IBGE/SIDRA
 3. Armazena os dados brutos em Parquet (Bronze)
 4. Limpa e agrega o horario para diario por estacao com dbt (Silver)
 5. Agrega por estado e mes, calcula medias moveis, anomalias e o clima de cada
    ciclo de safra com dbt (Gold)
 6. Exibe os resultados num dashboard Streamlit
+7. Treina um modelo que preve a anomalia de rendimento de cada safra a partir
+   do clima do ciclo, e preve as safras que o IBGE ainda nao publicou
 
 O Airflow agenda o processo todo dia as 09h UTC (06h no horario de Brasilia).
 
@@ -66,12 +68,41 @@ nao explica o rendimento no pais. Irrigacao, distribuicao da chuva ao longo
 do ciclo e diferencas de manejo entre regioes pesam, e o projeto nao mede
 essas variaveis. A cada ano novo de dados a amostra cresce.
 
+## Modelo
+
+Alem da correlacao, o projeto treina um modelo que responde: dado o clima
+observado ate agora no ciclo, quanto a safra vai render em relacao ao
+esperado? O alvo e a anomalia de rendimento (log do rendimento menos a
+tendencia dos 15 anos anteriores), e as variaveis sao chuva, temperatura e
+dias secos de cada terco do ciclo, comparados com a normal do estado.
+
+- Validacao temporal (rolling origin, um ano de teste por vez), com skill
+  contra a tendencia e intervalo de confianca por bootstrap de anos
+- Baselines (tendencia, persistencia, ridge) e ablacoes (sem clima, so clima,
+  com 1/3 e 2/3 do ciclo observado)
+- LightGBM com valores SHAP para explicar cada previsao
+- Retreino no Airflow quando o dado muda, com portao de promocao: a versao
+  nova so substitui a atual se nao piorar
+- MLflow para tracking e model card para o Hugging Face Hub
+
+```
+make install-ml    # dependencias do modelo
+make treinar       # avalia, treina e grava data/modelos/<versao>/
+make prever        # preve as safras ainda nao publicadas
+make mlflow        # interface do MLflow em http://localhost:5000
+make publicar-hf REPO=usuario/agroclima-anomalia-rendimento
+```
+
+O relatorio da avaliacao fica em `data/modelos/atual/relatorio.md`. O desenho,
+as escolhas e as limitacoes estao em [docs/ml.md](docs/ml.md).
+
 ## Tecnologias
 
 - Python - ingestao
 - dbt + DuckDB - transformacao, modelagem e testes
 - Apache Airflow - agendamento
 - Streamlit + Plotly - dashboard
+- LightGBM + scikit-learn - modelo, com MLflow para tracking
 - Docker - para rodar tudo junto
 
 ## Dados coletados
@@ -102,7 +133,7 @@ docker compose up -d
   `AIRFLOW_PASSWORD` no `.env`; o padrao e `admin`)
 
 Na primeira subida a DAG `agroclima_pipeline` ja roda uma vez: baixa cerca de
-300 MB do INMET e leva uns 15 minutos. O dashboard mostra dados quando ela
+1,5 GB do INMET (2001 a 2026) e pode levar mais de uma hora. O dashboard mostra dados quando ela
 termina. As execucoes seguintes verificam o ETag dos arquivos do INMET e so
 baixam o que mudou, entao levam menos de um minuto.
 
@@ -199,7 +230,9 @@ O desenho completo, com as decisoes e o porque de cada uma, esta em
 - `airflow/dags` - agendamento
 - `airflow/iniciar.sh` - partida do container do Airflow (usuario e dependencias do dbt)
 - `requirements.txt` - dependencias para rodar local e o dashboard
-- `requirements-dev.txt` - `requirements.txt` mais `pytest` e `responses`,
+- `src/ml` - modelo: alvo, variaveis, validacao, treino, previsao e publicacao
+- `requirements-ml.txt` - `requirements.txt` mais o necessario para o modelo
+- `requirements-dev.txt` - `requirements-ml.txt` mais `pytest` e `responses`,
   usadas so pela suite de testes
 - `requirements-airflow.txt` - subconjunto usado na imagem do Airflow (sem
   streamlit/plotly/statsmodels, que sao so do dashboard e podem colidir com
@@ -214,10 +247,10 @@ O desenho completo, com as decisoes e o porque de cada uma, esta em
   usa os arquivos anuais de dados historicos, atualizados a cada ~90 dias.
 - A anomalia climatica nao e calculada contra uma normal de 30 anos.
   `gold_clima_uf_mensal` tira a media de referencia da propria janela de
-  2022-2026 que ele agrega, entao `anomalia_temp` e `anomalia_precip` sao o
-  desvio em relacao a media de cinco anos daquele mes, nao a uma normal
-  climatologica de longo prazo. E a unica referencia possivel com os dados
-  que o projeto carrega.
+  2001-2026 que ele agrega, entao `anomalia_temp` e `anomalia_precip` sao o
+  desvio em relacao a media desse periodo, nao a uma normal climatologica
+  oficial. O modelo nao usa essas colunas: calcula as proprias normais so com
+  anos anteriores.
 - Safras com ciclo incompleto na base climatica nao aparecem em
   `gold_clima_safra`. O modelo so publica uma linha quando
   `meses_observados = meses_esperados`; um ano-safra cujo ciclo cai na
@@ -225,13 +258,12 @@ O desenho completo, com as decisoes e o porque de cada uma, esta em
   sobre uma fracao do periodo, mas apresentado como se fosse o total. Nao
   publicar a linha e preferivel a publicar um numero errado - por isso a
   pagina de Clima x Safra pode nao cobrir todos os anos que a pagina de
-  Safra cobre. A safra de soja 2021/22, por exemplo, fica de fora porque o
-  clima comeca em janeiro de 2022.
+  Safra cobre. A safra de soja 2000/01, por exemplo, fica de fora porque o
+  clima comeca em janeiro de 2001.
 - A chuva de um mes so e publicada quando todos os dias tem medicao em alguma
   estacao do estado. Na base real isso deixa de fora cerca de 3% dos meses,
   quase todos em RR, SE e RO, e as safras cujo ciclo passa por eles.
-- Com cinco anos de clima, cada estado tem poucas safras completas, e a
-  correlacao da pagina Clima x Safra descreve a amostra selecionada, nao uma
+- A correlacao da pagina Clima x Safra descreve a amostra selecionada, nao uma
   relacao de causa.
 
 ## Fontes
