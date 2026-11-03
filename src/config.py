@@ -5,7 +5,9 @@ DATA_DIR = RAIZ / "data"
 BRONZE_DIR = DATA_DIR / "bronze"
 DUCKDB_PATH = DATA_DIR / "warehouse.duckdb"
 
-ANOS_CLIMA = (2022, 2023, 2024, 2025, 2026)
+# 2001 em diante: o zip de 2000 cobre so as poucas estacoes instaladas no fim
+# daquele ano. A primeira carga baixa cerca de 1,5 GB.
+ANOS_CLIMA = tuple(range(2001, 2027))
 
 INMET_ESTACOES_URL = "https://apitempo.inmet.gov.br/estacoes/T"
 INMET_ZIP_URL = "https://portal.inmet.gov.br/uploads/dadoshistoricos/{ano}.zip"

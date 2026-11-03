@@ -19,11 +19,27 @@ def _clima():
     return inmet_api.ingest_clima(config.ANOS_CLIMA)
 
 
+def _treinar():
+    # Import aqui dentro: lightgbm e sklearn pesam no parse da DAG, que o
+    # scheduler repete a cada poucos segundos.
+    from src.ml import treino
+
+    return treino.main()
+
+
+def _prever():
+    from src.ml import prever
+
+    return prever.main()
+
+
 def _notificar(**contexto):
     ti = contexto["ti"]
     print("estacoes:", ti.xcom_pull(task_ids="ingest_inmet_estacoes"))
     print("clima:", ti.xcom_pull(task_ids="ingest_inmet_clima"))
     print("sidra:", ti.xcom_pull(task_ids="ingest_sidra"))
+    print("modelo:", ti.xcom_pull(task_ids="treinar_modelo"))
+    print("previsoes:", ti.xcom_pull(task_ids="prever_safras"))
 
 
 with DAG(
@@ -48,7 +64,9 @@ with DAG(
     )
 
     dbt = PythonOperator(task_id="dbt_build", python_callable=rodar_dbt)
+    treinar = PythonOperator(task_id="treinar_modelo", python_callable=_treinar)
+    prever = PythonOperator(task_id="prever_safras", python_callable=_prever)
     notify = PythonOperator(task_id="notify", python_callable=_notificar)
     end = EmptyOperator(task_id="end")
 
-    start >> [estacoes, clima, sidra] >> dbt >> notify >> end
+    start >> [estacoes, clima, sidra] >> dbt >> treinar >> prever >> notify >> end

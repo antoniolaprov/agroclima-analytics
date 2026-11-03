@@ -21,7 +21,7 @@ com a mesma stack. A diferença deliberada de arquitetura está na seção 3.
 
 - Granularidade geográfica: UF (27 unidades federativas)
 - Culturas: soja, milho, café e cana-de-açúcar
-- Histórico: 5 anos de clima (2022–2026)
+- Histórico: clima de 2001 a 2026
 - Dashboard com 4 páginas
 - Orquestração diária via Airflow
 - Execução local (sem Docker) e via `docker compose`
@@ -30,9 +30,10 @@ com a mesma stack. A diferença deliberada de arquitetura está na seção 3.
 
 - Granularidade municipal (cobertura irregular de estações e complexidade
   geoespacial de associar estação a município)
-- Previsão ou modelagem preditiva de safra
 - Culturas além das quatro listadas
 - Autenticação no dashboard
+
+O modelo preditivo, que entrou depois, está descrito em [ml.md](ml.md).
 
 ## 3. Decisão de arquitetura: Python ingere, dbt transforma
 
@@ -141,7 +142,8 @@ ZIP e compara `ETag`/`Last-Modified` com o valor gravado em
 `data/bronze/_manifest.json`. Se não mudou, pula o download. Assim a DAG
 roda todo dia sem reprocessar 61 MB à toa.
 
-Anos carregados: 2022 a 2026 (~300 MB de ZIP).
+Anos carregados: 2001 a 2026 (~1,5 GB de ZIP). Os arquivos até 2018 usam
+outro cabeçalho de data e hora, que o parser também lê.
 
 ### 5.2 Silver (dbt)
 
