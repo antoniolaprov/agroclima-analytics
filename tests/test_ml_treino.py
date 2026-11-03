@@ -77,3 +77,19 @@ def test_carrega_do_warehouse(tmp_path, dados_sinteticos):
     carregado = dados_ml.carregar(caminho)
     assert len(carregado["safra"]) == len(safra)
     assert set(carregado["clima"].columns) >= {"precipitacao", "temp_max", "dias_sem_chuva"}
+
+
+def test_nao_retreina_sem_dado_novo(treinado, dados_sinteticos):
+    destino, primeiro = treinado
+    segundo = treino.main(destino=destino, usar_mlflow=False, dados=dados_sinteticos)
+    assert segundo["treinado"] is False
+    assert segundo["versao"] == primeiro["versao"]
+
+
+def test_assinatura_ignora_ordem_e_muda_com_o_dado(dados_sinteticos):
+    base = treino.assinatura(dados_sinteticos)
+    embaralhado = {k: v.sample(frac=1, random_state=1) for k, v in dados_sinteticos.items()}
+    assert treino.assinatura(embaralhado) == base
+    alterado = dict(dados_sinteticos)
+    alterado["safra"] = dados_sinteticos["safra"].assign(rendimento=lambda d: d["rendimento"] + 1)
+    assert treino.assinatura(alterado) != base

@@ -1,0 +1,11 @@
+# Treino e avaliacao do modelo (src/ml). mlflow e huggingface_hub sao
+# opcionais: sem eles o treino roda e so nao registra o experimento nem
+# publica o modelo.
+-r requirements.txt
+
+lightgbm==4.5.0
+scikit-learn==1.5.2
+joblib==1.4.2
+matplotlib==3.9.2
+mlflow-skinny==2.17.2
+huggingface_hub==0.26.2

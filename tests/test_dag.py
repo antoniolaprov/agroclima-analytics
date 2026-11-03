@@ -22,7 +22,7 @@ def test_dag_tem_as_tarefas_esperadas():
     tarefas = set(bag.dags["agroclima_pipeline"].task_ids)
     assert tarefas == {
         "start", "ingest_inmet_estacoes", "ingest_inmet_clima",
-        "ingest_sidra", "dbt_build", "notify", "end",
+        "ingest_sidra", "dbt_build", "treinar_modelo", "prever_safras", "notify", "end",
     }
 
 
@@ -31,3 +31,9 @@ def test_ingestoes_rodam_em_paralelo_antes_do_dbt():
     assert dag.get_task("dbt_build").upstream_task_ids == {
         "ingest_inmet_estacoes", "ingest_inmet_clima", "ingest_sidra",
     }
+
+
+def test_modelo_treina_depois_do_dbt_e_preve_depois_do_treino():
+    dag = DagBag(dag_folder="airflow/dags", include_examples=False).dags["agroclima_pipeline"]
+    assert dag.get_task("treinar_modelo").upstream_task_ids == {"dbt_build"}
+    assert dag.get_task("prever_safras").upstream_task_ids == {"treinar_modelo"}

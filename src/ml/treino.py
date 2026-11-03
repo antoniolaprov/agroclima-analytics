@@ -1,14 +1,20 @@
 """Avalia os experimentos, treina o modelo final e decide se ele substitui o atual.
 
-Uso: python -m src.ml.treino [--duckdb CAMINHO] [--saida DIR] [--sem-mlflow]
+Uso: python -m src.ml.treino [--duckdb CAMINHO] [--saida DIR] [--sem-mlflow] [--forcar]
 
 Cada execucao grava uma versao em data/modelos/<versao>/. Ela so vira
 data/modelos/atual/ se o skill da validacao temporal nao piorar mais que
 TOLERANCIA em relacao a versao atual: um dado novo do IBGE com problema, ou
 uma mudanca no codigo, nao troca silenciosamente um modelo bom por um pior.
+
+O Airflow chama o treino todo dia, mas o IBGE publica a PAM uma vez por ano
+e o INMET atualiza o zip do ano corrente uma vez por mes. Se as tabelas de
+entrada nao mudaram desde a versao atual, o treino nao roda (--forcar ignora
+essa checagem).
 """
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -23,8 +29,8 @@ import pandas as pd
 import sklearn
 
 from src import config
-from src.ml import dados as dados_ml
 from src.ml import alvo, experimentos, modelos, relatorio
+from src.ml import dados as dados_ml
 
 log = logging.getLogger(__name__)
 
@@ -50,11 +56,21 @@ def importancia(modelo: modelos.LightGBM, tabela: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def skill_atual(destino: Path) -> float | None:
+def assinatura(dados: dict[str, pd.DataFrame]) -> str:
+    """Hash das tabelas de entrada, independente da ordem das linhas."""
+    partes = []
+    for nome in sorted(dados):
+        df = dados[nome]
+        df = df[sorted(df.columns)].sort_values(sorted(df.columns)).reset_index(drop=True)
+        partes.append(f"{nome}:{pd.util.hash_pandas_object(df, index=False).sum()}")
+    return hashlib.sha256("|".join(partes).encode()).hexdigest()[:16]
+
+
+def metadados_atual(destino: Path) -> dict | None:
     meta = destino / "atual" / "metadados.json"
     if not meta.exists():
         return None
-    return json.loads(meta.read_text(encoding="utf-8"))["metricas"]["skill"]
+    return json.loads(meta.read_text(encoding="utf-8"))
 
 
 def decidir_promocao(skill_novo: float, skill_anterior: float | None,
@@ -106,8 +122,15 @@ def _registrar_mlflow(resultado: dict, pasta: Path, versao: str) -> str | None:
 
 
 def main(caminho_duckdb: Path | None = None, destino: Path = MODELOS_DIR,
-         usar_mlflow: bool = True, dados: dict | None = None) -> dict:
+         usar_mlflow: bool = True, dados: dict | None = None, forcar: bool = False) -> dict:
     dados = dados or dados_ml.carregar(caminho_duckdb)
+    hash_dados = assinatura(dados)
+    atual = metadados_atual(destino)
+    if atual and atual.get("hash_dados") == hash_dados and not forcar:
+        log.info("dados iguais aos da versao %s, treino nao necessario", atual["versao"])
+        return {"versao": atual["versao"], "promovido": False, "treinado": False,
+                "skill": atual["metricas"]["skill"]}
+
     resultado = experimentos.rodar(dados)
     tabelas = resultado["tabelas"]
 
@@ -141,11 +164,12 @@ def main(caminho_duckdb: Path | None = None, destino: Path = MODELOS_DIR,
             "anos_teste": resultado["anos_teste"],
         },
         "metricas": metricas_final,
+        "hash_dados": hash_dados,
         "versoes": {"lightgbm": lightgbm.__version__, "scikit-learn": sklearn.__version__,
                     "pandas": pd.__version__},
     }
 
-    anterior = skill_atual(destino)
+    anterior = atual["metricas"]["skill"] if atual else None
     promovido = decidir_promocao(metricas_final["skill"], anterior)
     metadados["promocao"] = {"promovido": promovido, "skill_anterior": anterior, "tolerancia": TOLERANCIA}
 
@@ -162,8 +186,8 @@ def main(caminho_duckdb: Path | None = None, destino: Path = MODELOS_DIR,
         log.warning("versao %s nao promovida: skill %.3f contra %.3f da atual",
                     versao, metricas_final["skill"], anterior)
 
-    return {"versao": versao, "promovido": promovido, "skill": metricas_final["skill"],
-            "skill_ic95": metricas_final["skill_ic95"]}
+    return {"versao": versao, "promovido": promovido, "treinado": True,
+            "skill": metricas_final["skill"], "skill_ic95": metricas_final["skill_ic95"]}
 
 
 def _args():
@@ -171,10 +195,11 @@ def _args():
     p.add_argument("--duckdb", type=Path, default=None)
     p.add_argument("--saida", type=Path, default=MODELOS_DIR)
     p.add_argument("--sem-mlflow", action="store_true")
+    p.add_argument("--forcar", action="store_true", help="treina mesmo sem dado novo")
     return p.parse_args()
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     a = _args()
-    print(json.dumps(main(a.duckdb, a.saida, not a.sem_mlflow), indent=2))
+    print(json.dumps(main(a.duckdb, a.saida, not a.sem_mlflow, forcar=a.forcar), indent=2))
