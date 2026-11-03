@@ -1,3 +1,4 @@
+import json
 import time
 
 import duckdb
@@ -72,3 +73,27 @@ def producao_por_uf(cultura: str, ano_ini: int, ano_fim: int) -> pd.DataFrame:
         """,
         [cultura, cultura, ano_ini, ano_fim],
     )
+
+
+@st.cache_data(ttl=600)
+def previsoes() -> pd.DataFrame:
+    # Gravado por src.ml.prever; nao vai para o warehouse porque o dbt reconstroi
+    # o DuckDB a cada build e apagaria a tabela.
+    caminho = config.MODELOS_DIR / "previsoes.csv"
+    if not caminho.exists():
+        return pd.DataFrame()
+    return pd.read_csv(caminho)
+
+
+@st.cache_data(ttl=600)
+def modelo_atual() -> dict | None:
+    pasta = config.MODELOS_DIR / "atual"
+    meta = pasta / "metadados.json"
+    if not meta.exists():
+        return None
+    saida = json.loads(meta.read_text(encoding="utf-8"))
+    metricas = pasta / "metricas.csv"
+    saida["tabela_metricas"] = pd.read_csv(metricas) if metricas.exists() else pd.DataFrame()
+    figura = pasta / "figuras" / "skill.png"
+    saida["figura_skill"] = str(figura) if figura.exists() else None
+    return saida

@@ -1,7 +1,7 @@
 import streamlit as st
 
 from dashboard import cores
-from dashboard.views import clima, clima_safra, overview, safra
+from dashboard.views import clima, clima_safra, overview, previsao, safra
 
 st.set_page_config(page_title="AgroClima Analytics", layout="wide")
 
@@ -10,6 +10,7 @@ PAGINAS = {
     "Clima": clima,
     "Safra": safra,
     "Clima x Safra": clima_safra,
+    "Previsao": previsao,
 }
 
 UFS = [
@@ -29,8 +30,8 @@ filtros = {
         )
     ),
     "culturas": tuple(st.sidebar.multiselect("Cultura", CULTURAS, default=["soja"])),
-    "ano_ini": st.sidebar.number_input("Ano inicial", 2022, 2026, 2022),
-    "ano_fim": st.sidebar.number_input("Ano final", 2022, 2026, 2026),
+    "ano_ini": st.sidebar.number_input("Ano inicial", 2001, 2026, 2022),
+    "ano_fim": st.sidebar.number_input("Ano final", 2001, 2026, 2026),
 }
 
 if not filtros["ufs"] or not filtros["culturas"]:
