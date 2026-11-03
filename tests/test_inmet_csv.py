@@ -2,6 +2,7 @@ import math
 from pathlib import Path
 
 import pandas as pd
+import pytest
 
 from src.ingestion import inmet_api
 
@@ -52,3 +53,31 @@ def test_data_vira_datetime():
     df = _parse()
     assert df["data"].dtype.kind == "M"
     assert df.loc[0, "data"] == pd.Timestamp("2026-01-01")
+
+
+FIXTURE_ANTIGA = Path(__file__).parent / "fixtures" / "INMET_CO_DF_A001_BRASILIA_07-05-2000_A_31-12-2010.CSV"
+
+
+def _parse_antigo():
+    return inmet_api.parse_csv_estacao(FIXTURE_ANTIGA.read_bytes(), FIXTURE_ANTIGA.name)
+
+
+def test_layout_ate_2018_le_data_com_hifen():
+    df = _parse_antigo()
+    assert df.loc[0, "data"] == pd.Timestamp("2010-01-01")
+
+
+def test_layout_ate_2018_le_hora_com_dois_pontos():
+    assert list(_parse_antigo()["hora_utc"]) == [0, 1, 2]
+
+
+def test_layout_ate_2018_mantem_as_medicoes():
+    novo, antigo = _parse(), _parse_antigo()
+    colunas = ["precipitacao", "temperatura", "umidade", "vento_velocidade"]
+    pd.testing.assert_frame_equal(novo[colunas], antigo[colunas])
+
+
+def test_layout_desconhecido_e_rejeitado():
+    texto = FIXTURE.read_bytes().decode("latin1").replace("Data;Hora UTC;", "Dia;Hora;", 1)
+    with pytest.raises(ValueError, match="data/hora"):
+        inmet_api.parse_csv_estacao(texto.encode("latin1"), FIXTURE.name)

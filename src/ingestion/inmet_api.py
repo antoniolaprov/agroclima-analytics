@@ -57,6 +57,21 @@ COLUNAS_CSV = {
 
 PADRAO_NOME = re.compile(r"INMET_[A-Z]{1,2}_([A-Z]{2})_([A-Z]\d{3})_")
 
+# O INMET mudou o cabecalho em 2019. Ate 2018: "DATA (YYYY-MM-DD)" com
+# 2010-01-01 e "HORA (UTC)" com 00:00. Dai em diante: "Data" com 2019/01/01 e
+# "Hora UTC" com "0000 UTC". As colunas de medicao tem o mesmo nome nos dois.
+LAYOUTS_DATA_HORA = (
+    ("Data", "Hora UTC", "%Y/%m/%d"),
+    ("DATA (YYYY-MM-DD)", "HORA (UTC)", "%Y-%m-%d"),
+)
+
+
+def _colunas_data_hora(colunas, nome_arquivo: str) -> tuple[str, str, str]:
+    for col_data, col_hora, formato in LAYOUTS_DATA_HORA:
+        if col_data in colunas and col_hora in colunas:
+            return col_data, col_hora, formato
+    raise ValueError(f"CSV {nome_arquivo} sem coluna de data/hora conhecida")
+
 
 def _para_float(valor: str) -> float:
     texto = str(valor).strip()
@@ -80,12 +95,13 @@ def parse_csv_estacao(conteudo: bytes, nome_arquivo: str) -> pd.DataFrame:
         faltando = sorted(set(COLUNAS_CSV) - set(presentes))
         raise ValueError(f"CSV {nome_arquivo} sem as colunas {faltando}")
 
+    col_data, col_hora, formato = _colunas_data_hora(df.columns, nome_arquivo)
     saida = pd.DataFrame(
         {
             "cd_estacao": cd_estacao,
             "uf": uf,
-            "data": pd.to_datetime(df["Data"], format="%Y/%m/%d"),
-            "hora_utc": df["Hora UTC"].str.slice(0, 2).astype(int),
+            "data": pd.to_datetime(df[col_data], format=formato),
+            "hora_utc": df[col_hora].str.slice(0, 2).astype(int),
         }
     )
     for original, novo in presentes.items():
